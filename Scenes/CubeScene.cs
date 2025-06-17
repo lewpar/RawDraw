@@ -44,32 +44,57 @@ public class CubeScene : IScene
     {
         buffer.Clear(Color.Black);
 
-        angleX += 0.001f * deltaTime; // rotate based on deltaTime
+        angleX += 0.001f * deltaTime;
         angleY += 0.002f * deltaTime;
 
         Vector2[] projected = new Vector2[vertices.Length];
 
         for (int i = 0; i < vertices.Length; i++)
         {
-            // Rotate around X and Y
             Vector3 rotated = MathHelper.RotateX(vertices[i], angleX);
             rotated = MathHelper.RotateY(rotated, angleY);
-
-            // Scale cube size
             rotated = rotated * 100;
-
-            // Translate cube away from camera along Z axis
             Vector3 translated = new Vector3(rotated.X, rotated.Y, rotated.Z + 400);
-
-            // Project 3D point to 2D screen coordinates
             projected[i] = MathHelper.Project(translated, width, height, fov: 256, viewerDistance: 3);
         }
 
-        // Draw edges
-        foreach (var (startIdx, endIdx) in edges)
-        {
-            DrawLine(buffer, projected[startIdx].X, projected[startIdx].Y, projected[endIdx].X, projected[endIdx].Y, Color.White);
-        }
+        // Helper function to convert Vector2 to Point (int)
+        Point ToPoint(Vector2 v) => new Point(v.X, v.Y);
+
+        // Draw cube faces as 2 triangles each:
+        // Cube vertex indices reference:
+        // 0: (-1,  1, -1)
+        // 1: ( 1,  1, -1)
+        // 2: ( 1, -1, -1)
+        // 3: (-1, -1, -1)
+        // 4: (-1,  1,  1)
+        // 5: ( 1,  1,  1)
+        // 6: ( 1, -1,  1)
+        // 7: (-1, -1,  1)
+
+        // Back face (0,1,2,3)
+        buffer.FillTriangle(ToPoint(projected[0]), ToPoint(projected[1]), ToPoint(projected[2]), Color.White);
+        buffer.FillTriangle(ToPoint(projected[0]), ToPoint(projected[2]), ToPoint(projected[3]), Color.White);
+
+        // Front face (4,5,6,7)
+        buffer.FillTriangle(ToPoint(projected[4]), ToPoint(projected[5]), ToPoint(projected[6]), Color.White);
+        buffer.FillTriangle(ToPoint(projected[4]), ToPoint(projected[6]), ToPoint(projected[7]), Color.White);
+
+        // Top face (0,1,5,4)
+        buffer.FillTriangle(ToPoint(projected[0]), ToPoint(projected[1]), ToPoint(projected[5]), Color.White);
+        buffer.FillTriangle(ToPoint(projected[0]), ToPoint(projected[5]), ToPoint(projected[4]), Color.White);
+
+        // Bottom face (3,2,6,7)
+        buffer.FillTriangle(ToPoint(projected[3]), ToPoint(projected[2]), ToPoint(projected[6]), Color.White);
+        buffer.FillTriangle(ToPoint(projected[3]), ToPoint(projected[6]), ToPoint(projected[7]), Color.White);
+
+        // Left face (0,3,7,4)
+        buffer.FillTriangle(ToPoint(projected[0]), ToPoint(projected[3]), ToPoint(projected[7]), Color.White);
+        buffer.FillTriangle(ToPoint(projected[0]), ToPoint(projected[7]), ToPoint(projected[4]), Color.White);
+
+        // Right face (1,2,6,5)
+        buffer.FillTriangle(ToPoint(projected[1]), ToPoint(projected[2]), ToPoint(projected[6]), Color.White);
+        buffer.FillTriangle(ToPoint(projected[1]), ToPoint(projected[6]), ToPoint(projected[5]), Color.White);
     }
 
     // Bresenham line algorithm to draw edges

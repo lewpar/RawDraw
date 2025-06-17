@@ -96,7 +96,7 @@ public class FrameBuffer : IDisposable
         Buffer.BlockCopy(rawColor, 0, _softwareBackFrameBuffer, pixelOffset, _bytesPerPixel);
     }
     
-    public void DrawTriangle(Point p1, Point p2, Point p3, Color color)
+    public void FillTriangle(Point p1, Point p2, Point p3, Color color)
     {
         // Sort points by Y ascending (p1.Y <= p2.Y <= p3.Y)
         if (p2.Y < p1.Y) (p1, p2) = (p2, p1);
