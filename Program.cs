@@ -15,12 +15,16 @@ class Program
         });
 
         var testScene = new TestScene(buffer.Width, buffer.Height);
+        var natureScene = new NatureScene();
+        var spaceScene = new SpaceStationScene();
 
         while (true)
         {
             buffer.Clear(Color.Black);
 
-            testScene.Render(buffer);
+            //testScene.Render(buffer);
+            //natureScene.Render(buffer);
+            spaceScene.Render(buffer);
 
             buffer.SwapBuffers();
         }
