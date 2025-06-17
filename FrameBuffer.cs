@@ -95,6 +95,84 @@ public class FrameBuffer : IDisposable
 
         Buffer.BlockCopy(rawColor, 0, _softwareBackFrameBuffer, pixelOffset, _bytesPerPixel);
     }
+    
+    public void FillTriangle(Point p1, Point p2, Point p3, Color color)
+    {
+        // Sort points by Y ascending (p1.Y <= p2.Y <= p3.Y)
+        if (p2.Y < p1.Y) (p1, p2) = (p2, p1);
+        if (p3.Y < p1.Y) (p1, p3) = (p3, p1);
+        if (p3.Y < p2.Y) (p2, p3) = (p3, p2);
+
+        // Compute inverse slopes
+        float dx1 = 0, dx2 = 0, dx3 = 0;
+
+        if (p2.Y - p1.Y > 0)
+            dx1 = (float)(p2.X - p1.X) / (p2.Y - p1.Y);
+        if (p3.Y - p1.Y > 0)
+            dx2 = (float)(p3.X - p1.X) / (p3.Y - p1.Y);
+        if (p3.Y - p2.Y > 0)
+            dx3 = (float)(p3.X - p2.X) / (p3.Y - p2.Y);
+
+        float sx = p1.X;
+        float ex = p1.X;
+
+        // Draw upper part of triangle (flat bottom)
+        for (int y = p1.Y; y <= p2.Y; y++)
+        {
+            if (y < 0 || y >= Height)
+            {
+                sx += dx1;
+                ex += dx2;
+                continue;
+            }
+
+            int startX = (int)Math.Round(sx);
+            int endX = (int)Math.Round(ex);
+
+            if (startX > endX)
+                (startX, endX) = (endX, startX);
+
+            for (int x = startX; x <= endX; x++)
+            {
+                if (x >= 0 && x < Width)
+                    DrawPixel(x, y, color);
+            }
+
+            sx += dx1;
+            ex += dx2;
+        }
+
+        sx = p2.X;
+        // ex continues from previous loop (p1 to p3)
+        // Reset ex to p1.X + dx2 * (p2.Y - p1.Y)
+        ex = p1.X + dx2 * (p2.Y - p1.Y);
+
+        // Draw lower part of triangle (flat top)
+        for (int y = p2.Y; y <= p3.Y; y++)
+        {
+            if (y < 0 || y >= Height)
+            {
+                sx += dx3;
+                ex += dx2;
+                continue;
+            }
+
+            int startX = (int)Math.Round(sx);
+            int endX = (int)Math.Round(ex);
+
+            if (startX > endX)
+                (startX, endX) = (endX, startX);
+
+            for (int x = startX; x <= endX; x++)
+            {
+                if (x >= 0 && x < Width)
+                    DrawPixel(x, y, color);
+            }
+
+            sx += dx3;
+            ex += dx2;
+        }
+    }
 
     public void DrawRect(int x, int y, int width, int height, int borderWidth, Color color)
     {
@@ -107,7 +185,7 @@ public class FrameBuffer : IDisposable
         {
             borderWidth = 10;
         }
-        
+
         for (int i = 0; i < borderWidth; i++)
         {
             int topY = y + i;
