@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 using System.IO.MemoryMappedFiles;
 
@@ -16,6 +17,9 @@ public class FrameBuffer : IDisposable
     private MemoryMappedViewAccessor _frameBufferAccessor;
 
     private byte[] _softwareBackFrameBuffer;
+
+    private long _timeSinceLastSwap;
+    private Stopwatch _swapTimer;
 
     public FrameBuffer(FrameBufferOptions options)
     {
@@ -47,6 +51,9 @@ public class FrameBuffer : IDisposable
         _frameBufferAccessor = _frameBufferMemoryMap.CreateViewAccessor(0, frameBufferSize, MemoryMappedFileAccess.Write);
 
         _softwareBackFrameBuffer = new byte[frameBufferInfo.Width * frameBufferInfo.Height * _bytesPerPixel];
+
+        _timeSinceLastSwap = 0;
+        _swapTimer = new Stopwatch();
     }
 
     public void Clear(Color color)
@@ -74,6 +81,67 @@ public class FrameBuffer : IDisposable
         var pixelOffset = (y * _frameBufferInfo.Width + x) * _bytesPerPixel;
 
         Buffer.BlockCopy(rawColor, 0, _softwareBackFrameBuffer, pixelOffset, _bytesPerPixel);
+    }
+
+    public void DrawRect(int x, int y, int width, int height, int borderWidth, Color color)
+    {
+        if (borderWidth < 1)
+        {
+            return;
+        }
+
+        if (borderWidth > 10)
+        {
+            borderWidth = 10;
+        }
+        
+        for (int i = 0; i < borderWidth; i++)
+        {
+            int topY = y + i;
+            int bottomY = y + height - 1 - i;
+            int leftX = x + i;
+            int rightX = x + width - 1 - i;
+
+            // Draw top horizontal line
+            if (topY >= 0 && topY < _frameBufferInfo.Height)
+            {
+                for (int px = leftX; px <= rightX; px++)
+                {
+                    if (px < 0 || px >= _frameBufferInfo.Width) continue;
+                    DrawPixel(px, topY, color);
+                }
+            }
+
+            // Draw bottom horizontal line (if different from top)
+            if (bottomY != topY && bottomY >= 0 && bottomY < _frameBufferInfo.Height)
+            {
+                for (int px = leftX; px <= rightX; px++)
+                {
+                    if (px < 0 || px >= _frameBufferInfo.Width) continue;
+                    DrawPixel(px, bottomY, color);
+                }
+            }
+
+            // Draw left vertical line
+            if (leftX >= 0 && leftX < _frameBufferInfo.Width)
+            {
+                for (int py = topY; py <= bottomY; py++)
+                {
+                    if (py < 0 || py >= _frameBufferInfo.Height) continue;
+                    DrawPixel(leftX, py, color);
+                }
+            }
+
+            // Draw right vertical line (if different from left)
+            if (rightX != leftX && rightX >= 0 && rightX < _frameBufferInfo.Width)
+            {
+                for (int py = topY; py <= bottomY; py++)
+                {
+                    if (py < 0 || py >= _frameBufferInfo.Height) continue;
+                    DrawPixel(rightX, py, color);
+                }
+            }
+        }
     }
 
     public void FillRect(int x, int y, int width, int height, Color color)
@@ -131,8 +199,24 @@ public class FrameBuffer : IDisposable
         }
     }
 
+    private void DrawMetrics()
+    {
+        FillRect(5, 5, 175, 25, Color.Gray);
+        DrawRect(5, 5, 175, 25, 3, Color.DarkGray);
+        DrawText(15, 15, $"Frame Diff (ms): {_timeSinceLastSwap}", Color.White);
+    }
+
     public void SwapBuffers()
     {
+        if (Options.EnableMetrics)
+        {
+            _timeSinceLastSwap = _swapTimer.ElapsedMilliseconds;
+
+            DrawMetrics();
+
+           _swapTimer.Restart();
+        }
+
         _frameBufferAccessor.WriteArray(0, _softwareBackFrameBuffer, 0, _softwareBackFrameBuffer.Length);
     }
 
