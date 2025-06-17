@@ -10,6 +10,8 @@ using var buffer = new FrameBuffer(new FrameBufferOptions
 
 while (true)
 {
+    buffer.Clear(Color.Black);
+    
     buffer.FillRect(new Rectangle(0, 0, 100, 100), Color.Red);
     buffer.DrawText(1, 1, "Hello World", Color.White);
 
