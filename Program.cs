@@ -23,9 +23,9 @@ class Program
         {
             buffer.Clear(Color.Black);
 
-            //testScene.Render(buffer);
+            testScene.Render(buffer, buffer.DeltaTime);
             //natureScene.Render(buffer);
-            spaceScene.Render(buffer, buffer.DeltaTime);
+            //spaceScene.Render(buffer, buffer.DeltaTime);
 
             buffer.SwapBuffers();
         }
