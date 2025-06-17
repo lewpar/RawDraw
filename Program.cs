@@ -17,6 +17,8 @@ class Program
 
         while (true)
         {
+            buffer.Clear(Color.Black);
+            
             buffer.FillRect(400, 400, 100, 100, Color.Red);
             buffer.DrawText(401, 401, "Hello, World!", Color.White);
 
