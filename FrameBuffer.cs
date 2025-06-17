@@ -44,7 +44,7 @@ public class FrameBuffer : IDisposable
         }
 
         _frameBufferInfo = frameBufferInfo;
-        
+
         Width = frameBufferInfo.Width;
         Height = frameBufferInfo.Height;
 
@@ -59,6 +59,12 @@ public class FrameBuffer : IDisposable
 
         _timeSinceLastSwap = 0;
         _swapTimer = new Stopwatch();
+
+        if (Options.HideCaret)
+        {
+            Console.Write("\x1b[?25l"); // Hide cursor
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => Console.Write("\x1b[?25h"); // Show cursor   
+        }
     }
 
     public void Clear(Color color)

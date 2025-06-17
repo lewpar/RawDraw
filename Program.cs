@@ -11,7 +11,8 @@ class Program
         using var buffer = new FrameBuffer(new FrameBufferOptions
         {
             Path = "/dev/fb0",
-            EnableMetrics = true
+            EnableMetrics = true,
+            HideCaret = true
         });
 
         var testScene = new TestScene(buffer.Width, buffer.Height);
