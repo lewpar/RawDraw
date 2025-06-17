@@ -76,16 +76,16 @@ public class FrameBuffer : IDisposable
         Buffer.BlockCopy(rawColor, 0, _softwareBackFrameBuffer, pixelOffset, _bytesPerPixel);
     }
 
-    public void FillRect(Rectangle rect, Color color)
+    public void FillRect(int x, int y, int width, int height, Color color)
     {
-        for (int py = rect.Y; py < rect.Y + rect.Height; py++)
+        for (int py = y; py < y + height; py++)
         {
             if (py < 0 || py >= _frameBufferInfo.Height)
             {
                 continue;
             }
-            
-            for (int px = rect.X; px < rect.X + rect.Width; px++)
+
+            for (int px = x; px < x + width; px++)
             {
                 if (px < 0 || px >= _frameBufferInfo.Width)
                 {
@@ -95,6 +95,10 @@ public class FrameBuffer : IDisposable
                 DrawPixel(px, py, color);
             }
         }
+    }
+    public void FillRect(Rectangle rect, Color color)
+    {
+        FillRect(rect.X, rect.Y, rect.Width, rect.Height, color);
     }
 
     public void DrawChar(int x, int y, char character, Color color)
