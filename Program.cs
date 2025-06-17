@@ -1,5 +1,5 @@
 ﻿using System.Drawing;
-using System.Numerics;
+
 using RawDraw.Scenes;
 
 namespace RawDraw;
@@ -19,6 +19,8 @@ class Program
         var natureScene = new NatureScene();
         var spaceScene = new SpaceStationScene();
         var cubeScene = new CubeScene(buffer.Width, buffer.Height);
+        var gameScene = new TestGameScene(buffer.Width, buffer.Height);
+        var spaceGameScene = new SpaceGameScene(buffer.Width, buffer.Height);
 
         while (true)
         {
@@ -27,7 +29,9 @@ class Program
             //testScene.Render(buffer, buffer.DeltaTime);
             //natureScene.Render(buffer);
             //spaceScene.Render(buffer, buffer.DeltaTime);
-            cubeScene.Render(buffer, buffer.DeltaTime);
+            //cubeScene.Render(buffer, buffer.DeltaTime);
+            //gameScene.Render(buffer, buffer.DeltaTime);
+            spaceGameScene.Render(buffer, buffer.DeltaTime);
 
             buffer.SwapBuffers();
         }
