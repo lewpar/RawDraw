@@ -21,6 +21,11 @@ public class FrameBuffer : IDisposable
     {
         Options = options;
 
+        if (!File.Exists(options.Path))
+        {
+            throw new Exception($"Failed to find frame buffer at path '{options.Path}'.");
+        }
+
         var frameBufferInfo = FrameBufferUtilities.GetFrameBufferInfo();
         if (frameBufferInfo is null)
         {
@@ -95,7 +100,7 @@ public class FrameBuffer : IDisposable
     public void DrawChar(int x, int y, char character, Color color)
     {
         character = char.ToUpper(character);
-        
+
         if (!FrameBufferFont.Basic8x8.TryGetValue(character, out var font))
         {
             font = FrameBufferFont.Basic8x8[' '];
