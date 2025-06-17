@@ -7,6 +7,8 @@ namespace RawDraw;
 public class FrameBuffer : IDisposable
 {
     public FrameBufferOptions Options { get; private set; }
+    public int Width { get; private set; }
+    public int Height { get; private set; }
 
     private FrameBufferInfo _frameBufferInfo;
 
@@ -42,6 +44,9 @@ public class FrameBuffer : IDisposable
         }
 
         _frameBufferInfo = frameBufferInfo;
+        
+        Width = frameBufferInfo.Width;
+        Height = frameBufferInfo.Height;
 
         _bytesPerPixel = frameBufferInfo.Depth / 8;
         var frameBufferSize = frameBufferInfo.Width * frameBufferInfo.VirtualHeight * _bytesPerPixel;
