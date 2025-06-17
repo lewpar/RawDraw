@@ -7,7 +7,7 @@ public class NatureScene : IScene
 {
     private int _frame;
 
-    public void Render(FrameBuffer buffer)
+    public void Render(FrameBuffer buffer, long deltaTime)
     {
         int width = buffer.Width;
         int height = buffer.Height;

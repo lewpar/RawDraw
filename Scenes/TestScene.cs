@@ -40,7 +40,7 @@ public class TestScene : IScene
         }
     }
     
-    public void Render(FrameBuffer buffer)
+    public void Render(FrameBuffer buffer, long deltaTime)
     {
         buffer.FillRect(400, 400, 100, 100, Color.Red);
         buffer.DrawText(401, 401, "Hello, World!", Color.White);

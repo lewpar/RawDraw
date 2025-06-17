@@ -25,7 +25,7 @@ class Program
 
             //testScene.Render(buffer);
             //natureScene.Render(buffer);
-            spaceScene.Render(buffer);
+            spaceScene.Render(buffer, buffer.DeltaTime);
 
             buffer.SwapBuffers();
         }

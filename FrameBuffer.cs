@@ -9,6 +9,7 @@ public class FrameBuffer : IDisposable
     public FrameBufferOptions Options { get; private set; }
     public int Width { get; private set; }
     public int Height { get; private set; }
+    public long DeltaTime { get => _deltaTimeMs; }
 
     private FrameBufferInfo _frameBufferInfo;
 
@@ -20,8 +21,8 @@ public class FrameBuffer : IDisposable
 
     private byte[] _softwareBackFrameBuffer;
 
-    private long _timeSinceLastSwap;
-    private Stopwatch _swapTimer;
+    private long _deltaTimeMs;
+    private Stopwatch _deltaTimer;
 
     public FrameBuffer(FrameBufferOptions options)
     {
@@ -57,8 +58,9 @@ public class FrameBuffer : IDisposable
 
         _softwareBackFrameBuffer = new byte[frameBufferInfo.Width * frameBufferInfo.Height * _bytesPerPixel];
 
-        _timeSinceLastSwap = 0;
-        _swapTimer = new Stopwatch();
+        _deltaTimeMs = 0;
+        _deltaTimer = new Stopwatch();
+        _deltaTimer.Start();
 
         if (Options.HideCaret)
         {
@@ -214,21 +216,20 @@ public class FrameBuffer : IDisposable
     {
         FillRect(5, 5, 175, 25, Color.Gray);
         DrawRect(5, 5, 175, 25, 3, Color.DarkGray);
-        DrawText(15, 15, $"Frame Diff (ms): {_timeSinceLastSwap}", Color.White);
+        DrawText(15, 15, $"Frame Diff (ms): {_deltaTimeMs}", Color.White);
     }
 
     public void SwapBuffers()
     {
         if (Options.EnableMetrics)
         {
-            _timeSinceLastSwap = _swapTimer.ElapsedMilliseconds;
-
             DrawMetrics();
-
-           _swapTimer.Restart();
         }
 
         _frameBufferAccessor.WriteArray(0, _softwareBackFrameBuffer, 0, _softwareBackFrameBuffer.Length);
+
+        _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
+        _deltaTimer.Restart();
     }
 
     public void Dispose()

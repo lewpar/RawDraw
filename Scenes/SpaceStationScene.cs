@@ -8,7 +8,7 @@ public class SpaceStationScene : IScene
     private int _frame;
     private Random _rand = new();
 
-    public void Render(FrameBuffer buffer)
+    public void Render(FrameBuffer buffer, long deltaTime)
     {
         int width = buffer.Width;
         int height = buffer.Height;
