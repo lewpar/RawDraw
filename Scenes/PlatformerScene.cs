@@ -20,7 +20,7 @@ public class PlatformerScene : IScene
     private float gravity;
     private float jumpForce;
     private float moveSpeed;
-    private const float BASE_GRAVITY = 0.5f;
+    private const float BASE_GRAVITY = 1f;
     private const float BASE_JUMP_FORCE = -120f;
     private const float BASE_MOVE_SPEED = 75f;
 
