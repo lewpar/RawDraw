@@ -36,7 +36,6 @@ public class KeyboardReader
         if (!File.Exists(_devicePath))
         {
             throw new FileNotFoundException($"Input device not found: {_devicePath}");
-            return false;
         }
 
         try
