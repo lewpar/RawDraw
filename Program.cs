@@ -8,9 +8,15 @@ class Program
 {
     static void Main(string[] args)
     {
+        Console.Write("Frame Buffer (/dev/fb0): ");
+        var frameBufferDevice = Console.ReadLine();
+
+        Console.Write("Input Device (/dev/input/event3): ");
+        var inputDevice = Console.ReadLine();
+
         using var buffer = new FrameBuffer(new FrameBufferOptions
         {
-            Path = "/dev/fb0",
+            Path = frameBufferDevice ?? "/dev/fb0",
             EnableMetrics = false,
             HideCaret = true
         });
@@ -25,7 +31,7 @@ class Program
 
         IScene currentScene = platformerScene;
 
-        var reader = new KeyboardReader("/dev/input/event3");
+        var reader = new KeyboardReader(inputDevice ?? "/dev/input/event3");
 
         if (!reader.TryInitialize())
         {
