@@ -9,8 +9,7 @@ public class TestScene : RenderScene
 {
     private float posX = 80;
     private float posY = 80;
-    private float moveSpeed = 100f; // Increased for better visibility
-    private bool hasLoggedInputCheck = false;
+    private float moveSpeed = 100f;
 
     public override void OnDraw(FrameBuffer buffer)
     {
@@ -23,12 +22,7 @@ public class TestScene : RenderScene
     {
         if (Input is null)
         {
-            if (!hasLoggedInputCheck)
-            {
-                throw new InvalidOperationException("Input manager is not initialized in TestScene");
-                hasLoggedInputCheck = true;
-            }
-            return;
+            throw new InvalidOperationException("Input manager is not initialized in TestScene");
         }
 
         float normalizedDelta = deltaTimeMs / 1000f; // Convert to seconds
