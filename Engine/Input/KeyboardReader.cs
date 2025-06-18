@@ -74,7 +74,7 @@ public class KeyboardReader
                     if (inputEvent.Type == EV_KEY)
                     {
                         var keyCode = (KeyCodes)inputEvent.Code;
-                        var isPressed = inputEvent.Value == 1;
+                        var isPressed = inputEvent.Value > 0;
 
                         lock (_lockObject)
                         {
