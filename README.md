@@ -22,7 +22,9 @@ while (true)
 ```
 
 ## Notes
-- Linux user must be in the `video` and `input` user groups.
+- Linux user must be in the `video` and `input` user groups (requires relog).
+    - `usermod -aG video $USER`
+    - `usermod -aG input $USER`
 
 ## Dependencies
 - `fbset` - Used to get the frame buffer information (size, color depth, etc..)
