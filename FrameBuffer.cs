@@ -12,8 +12,8 @@ public class FrameBuffer : IDisposable
     public long DeltaTime { get => _deltaTimeMs; }
 
     private FrameBufferInfo _frameBufferInfo;
-
     private int _bytesPerPixel;
+    private bool _is16Bit;
 
     private FileStream _frameBufferStream;
     private MemoryMappedFile _frameBufferMemoryMap;
@@ -39,12 +39,13 @@ public class FrameBuffer : IDisposable
             throw new Exception("Failed to get frame buffer information.");
         }
 
-        if (frameBufferInfo.Depth != 32)
+        if (frameBufferInfo.Depth != 16 && frameBufferInfo.Depth != 32)
         {
-            throw new Exception($"Expected a color depth of 32-bit, but got '{frameBufferInfo.Depth}-bit'.");
+            throw new Exception($"Unsupported color depth: {frameBufferInfo.Depth}-bit. Only 16-bit and 32-bit are supported.");
         }
 
         _frameBufferInfo = frameBufferInfo;
+        _is16Bit = frameBufferInfo.Depth == 16;
 
         Width = frameBufferInfo.Width;
         Height = frameBufferInfo.Height;
@@ -71,14 +72,16 @@ public class FrameBuffer : IDisposable
 
     public void Clear(Color color)
     {
-        var rawColor = FrameBufferUtilities.ColorToLittleEndian(color.R, color.G, color.B);
+        var rawColor = _is16Bit ? 
+            FrameBufferUtilities.ColorTo16Bit(color.R, color.G, color.B) : 
+            FrameBufferUtilities.ColorToLittleEndian(color.R, color.G, color.B);
 
         for (int i = 0; i < _softwareBackFrameBuffer.Length; i += _bytesPerPixel)
         {
-            _softwareBackFrameBuffer[i] = rawColor[0];
-            _softwareBackFrameBuffer[i + 1] = rawColor[1];
-            _softwareBackFrameBuffer[i + 2] = rawColor[2];
-            _softwareBackFrameBuffer[i + 3] = rawColor[3];
+            for (int j = 0; j < _bytesPerPixel; j++)
+            {
+                _softwareBackFrameBuffer[i + j] = rawColor[j];
+            }
         }
     }
 
@@ -90,7 +93,9 @@ public class FrameBuffer : IDisposable
             return;
         }
 
-        var rawColor = FrameBufferUtilities.ColorToLittleEndian(color.R, color.G, color.B);
+        var rawColor = _is16Bit ? 
+            FrameBufferUtilities.ColorTo16Bit(color.R, color.G, color.B) : 
+            FrameBufferUtilities.ColorToLittleEndian(color.R, color.G, color.B);
         var pixelOffset = (y * _frameBufferInfo.Width + x) * _bytesPerPixel;
 
         Buffer.BlockCopy(rawColor, 0, _softwareBackFrameBuffer, pixelOffset, _bytesPerPixel);
