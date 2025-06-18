@@ -17,7 +17,7 @@ class Program
         });
 
         engine.Initialize();
-        engine.SceneManager.Push(new TestScene());
+        engine.SceneManager.Push(new PlatformerScene());
 
         Console.CancelKeyPress += (s, e) =>
         {
