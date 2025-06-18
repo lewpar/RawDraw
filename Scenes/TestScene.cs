@@ -1,75 +1,52 @@
-using System.Drawing;
+using RawDraw.Engine.Drawing;
+using RawDraw.Engine.Input;
+using RawDraw.Engine.Primitive;
+using RawDraw.Engine.Scene;
 
 namespace RawDraw.Scenes;
 
-public class TestScene : IScene
+public class TestScene : RenderScene
 {
-    private List<RawRectangle> rectangles;
+    private float posX = 80;
+    private float posY = 80;
 
-    public TestScene(int width, int height)
+    private float moveSpeed = 1f;
+
+    public override void OnDraw(FrameBuffer buffer)
     {
-        rectangles = new List<RawRectangle>();
+        buffer.Clear(Color.Black);
 
-        var colors = new List<Color>()
-        {
-            Color.Green,
-            Color.Purple,
-            Color.Fuchsia,
-            Color.Yellow,
-            Color.SkyBlue
-        };
+        buffer.DrawText(30, 30, "Hello, World!", Color.White);
 
-        var rand = new Random();
-        var rectSize = 10;
-
-        for (int i = 0; i < 5000; i++)
-        {
-            var color = colors[rand.Next(0, colors.Count)];
-            rectangles.Add(new RawRectangle()
-            {
-                Position = new PointF(rand.Next(0, width - rectSize), rand.Next(0, height - rectSize)),
-                Size = new Point(rectSize, rectSize),
-                Velocity = new PointF(rand.NextSingle() / 2, rand.NextSingle() / 2),
-                Color = color
-            });
-        }
-    }
-    
-    public void Render(FrameBuffer buffer, long deltaTime)
-    {
-        buffer.FillRect(400, 400, 100, 100, Color.Red);
-        buffer.DrawText(401, 401, "Hello, World!", Color.White);
-
-        foreach (var rect in rectangles)
-        {
-            if (rect.Position.X + rect.Size.X >= buffer.Width)
-            {
-                rect.Velocity = new PointF(-Math.Abs(rect.Velocity.X), rect.Velocity.Y);
-            }
-            else if (rect.Position.X <= 0)
-            {
-                rect.Velocity = new PointF(Math.Abs(rect.Velocity.X), rect.Velocity.Y);
-            }
-
-            if (rect.Position.Y + rect.Size.Y >= buffer.Height)
-            {
-                rect.Velocity = new PointF(rect.Velocity.X, -Math.Abs(rect.Velocity.Y));
-            }
-            else if (rect.Position.Y <= 0)
-            {
-                rect.Velocity = new PointF(rect.Velocity.X, Math.Abs(rect.Velocity.Y));
-            }
-
-            rect.Position = new PointF(
-                rect.Position.X + rect.Velocity.X * deltaTime,
-                rect.Position.Y + rect.Velocity.Y * deltaTime);
-
-            buffer.FillRect((int)rect.Position.X, (int)rect.Position.Y, 10, 10, rect.Color);
-        }
+        buffer.FillRect((int)posX, (int)posY, 10, 10, Color.White);
     }
 
-    public void Input(int keyCode, bool state)
+    public override void OnUpdate(float deltaTimeMs)
     {
-        // Test scene doesn't need input handling
+        if (Input is null)
+        {
+            throw new Exception("Input manager not initialized.");
+        }
+
+        if (Input.IsKeyDown(KeyCodes.KEY_W))
+        {
+            Console.WriteLine("Key W down.");
+            posY -= moveSpeed * deltaTimeMs;
+        }
+
+        if (Input.IsKeyDown(KeyCodes.KEY_A))
+        {
+            posX -= moveSpeed * deltaTimeMs;
+        }
+
+        if (Input.IsKeyDown(KeyCodes.KEY_S))
+        {
+            posY += moveSpeed * deltaTimeMs;
+        }
+        
+        if (Input.IsKeyDown(KeyCodes.KEY_D))
+        {
+            posX += moveSpeed * deltaTimeMs;
+        }
     }
 }

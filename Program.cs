@@ -1,5 +1,5 @@
 ﻿using System.Drawing;
-
+using RawDraw.Engine;
 using RawDraw.Scenes;
 
 namespace RawDraw;
@@ -8,53 +8,21 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.Write("Frame Buffer (/dev/fb0): ");
-        var frameBufferDevice = Console.ReadLine();
-
-        Console.Write("Input Device (/dev/input/event3): ");
-        var inputDevice = Console.ReadLine();
-
-        using var buffer = new FrameBuffer(new FrameBufferOptions
+        var engine = new RenderEngine(new RenderEngineOptions()
         {
-            Path = string.IsNullOrWhiteSpace(frameBufferDevice) ? "/dev/fb0" : frameBufferDevice,
-            EnableMetrics = false,
-            HideCaret = true
+            FrameBufferDevice = "/dev/fb0",
+            InputDevice = "/dev/input/event3",
+            ShowMetrics = true,
+            HideConsoleCaret = true
         });
 
-        var testScene = new TestScene(buffer.Width, buffer.Height);
-        var natureScene = new NatureScene();
-        var spaceScene = new SpaceStationScene();
-        var cubeScene = new CubeScene(buffer.Width, buffer.Height);
-        var gameScene = new TestGameScene(buffer.Width, buffer.Height);
-        var spaceGameScene = new SpaceGameScene(buffer.Width, buffer.Height);
-        var platformerScene = new PlatformerScene(buffer.Width, buffer.Height);
+        engine.Initialize();
 
-        IScene currentScene = platformerScene;
+        engine.SceneManager.Push(new TestScene());
 
-        var reader = new KeyboardReader(string.IsNullOrWhiteSpace(inputDevice) ? "/dev/input/event3" : inputDevice);
-
-        if (!reader.TryInitialize())
-        {
-            Console.WriteLine("Failed to initialize keyboard reader.");
-            return;
-        }
-
-        Task.Run(() => 
-            reader.Listen((keyCode, state) => currentScene.Input(keyCode, state))
-        );
-        
         while (true)
         {
-            if(Console.KeyAvailable)
-            {
-                _ = Console.ReadKey(true); // Dispose of any keys in the input buffer so they dont get rendered over the scene
-            }
-
-            buffer.Clear(Color.Black);
-
-            currentScene.Render(buffer, buffer.DeltaTime);
-
-            buffer.SwapBuffers();
+            engine.Update();
         }
     }
 }
