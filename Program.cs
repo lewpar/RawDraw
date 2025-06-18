@@ -16,7 +16,7 @@ class Program
 
         using var buffer = new FrameBuffer(new FrameBufferOptions
         {
-            Path = frameBufferDevice ?? "/dev/fb0",
+            Path = string.IsNullOrWhiteSpace(frameBufferDevice) ? "/dev/fb0" : frameBufferDevice,
             EnableMetrics = false,
             HideCaret = true
         });
@@ -31,7 +31,7 @@ class Program
 
         IScene currentScene = platformerScene;
 
-        var reader = new KeyboardReader(inputDevice ?? "/dev/input/event3");
+        var reader = new KeyboardReader(string.IsNullOrWhiteSpace(inputDevice) ? "/dev/input/event3" : inputDevice);
 
         if (!reader.TryInitialize())
         {
