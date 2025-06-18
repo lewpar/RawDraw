@@ -68,4 +68,8 @@ public class TestScene : IScene
         }
     }
 
+    public void Input(int keyCode, bool state)
+    {
+        // Test scene doesn't need input handling
+    }
 }

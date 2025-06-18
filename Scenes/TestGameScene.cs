@@ -228,4 +228,9 @@ public class TestGameScene : IScene
 
         return list[_rng.Next(list.Count)];
     }
+
+    public void Input(int keyCode, bool state)
+    {
+        // Test game scene doesn't need input handling
+    }
 }

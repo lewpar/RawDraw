@@ -11,7 +11,7 @@ class Program
         using var buffer = new FrameBuffer(new FrameBufferOptions
         {
             Path = "/dev/fb0",
-            EnableMetrics = true,
+            EnableMetrics = false,
             HideCaret = true
         });
 
@@ -21,17 +21,32 @@ class Program
         var cubeScene = new CubeScene(buffer.Width, buffer.Height);
         var gameScene = new TestGameScene(buffer.Width, buffer.Height);
         var spaceGameScene = new SpaceGameScene(buffer.Width, buffer.Height);
+        var platformerScene = new PlatformerScene(buffer.Width, buffer.Height);
 
+        IScene currentScene = platformerScene;
+
+        var reader = new KeyboardReader("/dev/input/event3");
+
+        if (!reader.TryInitialize())
+        {
+            Console.WriteLine("Failed to initialize keyboard reader.");
+            return;
+        }
+
+        Task.Run(() => 
+            reader.Listen((keyCode, state) => currentScene.Input(keyCode, state))
+        );
+        
         while (true)
         {
+            if(Console.KeyAvailable)
+            {
+                _ = Console.ReadKey(true); // Dispose of any keys in the input buffer so they dont get rendered over the scene
+            }
+
             buffer.Clear(Color.Black);
 
-            //testScene.Render(buffer, buffer.DeltaTime);
-            //natureScene.Render(buffer);
-            //spaceScene.Render(buffer, buffer.DeltaTime);
-            //cubeScene.Render(buffer, buffer.DeltaTime);
-            //gameScene.Render(buffer, buffer.DeltaTime);
-            spaceGameScene.Render(buffer, buffer.DeltaTime);
+            currentScene.Render(buffer, buffer.DeltaTime);
 
             buffer.SwapBuffers();
         }

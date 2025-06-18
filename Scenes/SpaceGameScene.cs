@@ -6,9 +6,14 @@ namespace RawDraw.Scenes;
 
 public class SpaceGameScene : IScene
 {
+    // Screen dimensions
+    private readonly int screenWidth;
+    private readonly int screenHeight;
+
+    // Player properties
     private Vec2 playerPosition;
     private float playerRotation;
-    private float playerSpeed = 0.5f; // Increased speed for larger screens
+    private float playerSpeed = 0.5f;
     private float rotationSpeed = 0.1f;
     private List<(Vec2 position, Vec2 velocity)> bullets;
     private List<(Vec2 position, float size, Vec2 velocity)> asteroids;
@@ -17,15 +22,23 @@ public class SpaceGameScene : IScene
     private float asteroidSpawnTimer;
     private const float ASTEROID_SPAWN_INTERVAL = 2000; // milliseconds
 
+    // Input states
+    private bool isMovingForward;
+    private bool isRotatingLeft;
+    private bool isRotatingRight;
+    private bool isShooting;
+
+    // Key codes
+    private const int KEY_W = 17;
+    private const int KEY_A = 30;
+    private const int KEY_D = 32;
+    private const int KEY_SPACE = 57;
+
     // Game object sizes
     private readonly float playerSize;
     private readonly float bulletSize;
     private readonly float minAsteroidSize;
     private readonly float maxAsteroidSize;
-
-    // Screen dimensions
-    private readonly int screenWidth;
-    private readonly int screenHeight;
 
     // Colors
     private static readonly Color BACKGROUND_COLOR = Color.FromArgb(255, 0, 0, 20);
@@ -40,10 +53,10 @@ public class SpaceGameScene : IScene
         this.screenHeight = screenHeight;
 
         // Scale sizes based on screen dimensions
-        playerSize = Math.Min(screenWidth, screenHeight) * 0.02f; // 2% of screen size
-        bulletSize = Math.Min(screenWidth, screenHeight) * 0.005f; // 0.5% of screen size
-        minAsteroidSize = Math.Min(screenWidth, screenHeight) * 0.015f; // 1.5% of screen size
-        maxAsteroidSize = Math.Min(screenWidth, screenHeight) * 0.04f; // 4% of screen size
+        playerSize = Math.Min(screenWidth, screenHeight) * 0.02f;
+        bulletSize = Math.Min(screenWidth, screenHeight) * 0.005f;
+        minAsteroidSize = Math.Min(screenWidth, screenHeight) * 0.015f;
+        maxAsteroidSize = Math.Min(screenWidth, screenHeight) * 0.04f;
 
         // Center the player
         playerPosition = new Vec2(screenWidth / 2, screenHeight / 2);
@@ -54,18 +67,46 @@ public class SpaceGameScene : IScene
         score = 0;
         asteroidSpawnTimer = 0;
         SpawnAsteroid();
+
+        // Initialize input states
+        isMovingForward = false;
+        isRotatingLeft = false;
+        isRotatingRight = false;
+        isShooting = false;
+    }
+
+    public void Input(int keyCode, bool state)
+    {
+        switch (keyCode)
+        {
+            case KEY_W:
+                isMovingForward = state;
+                break;
+            case KEY_A:
+                isRotatingLeft = state;
+                break;
+            case KEY_D:
+                isRotatingRight = state;
+                break;
+            case KEY_SPACE:
+                isShooting = state;
+                if (state)
+                {
+                    // Shoot bullet in the direction we're facing
+                    Vec2 bulletVelocity = new Vec2(
+                        (float)Math.Sin(playerRotation) * 1.5f,
+                        -(float)Math.Cos(playerRotation) * 1.5f
+                    );
+                    bullets.Add((playerPosition, bulletVelocity));
+                }
+                break;
+        }
     }
 
     public void Render(FrameBuffer buffer, long deltaTime)
     {
-        // Clear screen with dark blue background
-        buffer.Clear(BACKGROUND_COLOR);
-
         // Update game state
         UpdateGame(deltaTime);
-
-        // Draw player ship
-        DrawPlayer(buffer);
 
         // Draw bullets
         foreach (var bullet in bullets)
@@ -82,16 +123,36 @@ public class SpaceGameScene : IScene
             DrawAsteroid(buffer, asteroid);
         }
 
+        // Draw player ship
+        DrawPlayer(buffer);
+
         // Draw score with larger text and padding
         int textPadding = 20;
         buffer.DrawText(textPadding, textPadding, $"Score: {score}", TEXT_COLOR);
-
-        // Handle input last to prepare for next frame
-        HandleInput();
     }
 
     private void UpdateGame(long deltaTime)
     {
+        // Handle rotation
+        if (isRotatingLeft)
+            playerRotation -= rotationSpeed;
+        if (isRotatingRight)
+            playerRotation += rotationSpeed;
+
+        // Handle movement
+        if (isMovingForward)
+        {
+            playerPosition += new Vec2(
+                (float)Math.Sin(playerRotation) * playerSpeed,
+                -(float)Math.Cos(playerRotation) * playerSpeed
+            );
+            // Wrap around screen
+            playerPosition = new Vec2(
+                (playerPosition.X + screenWidth) % screenWidth,
+                (playerPosition.Y + screenHeight) % screenHeight
+            );
+        }
+
         // Update bullets
         for (int i = bullets.Count - 1; i >= 0; i--)
         {
@@ -234,43 +295,6 @@ public class SpaceGameScene : IScene
                     
                     buffer.DrawPixel(drawX, drawY, ASTEROID_COLOR);
                 }
-            }
-        }
-    }
-
-    private void HandleInput()
-    {
-        while (Console.KeyAvailable)
-        {
-            var key = Console.ReadKey(true).Key;
-            switch (key)
-            {
-                case ConsoleKey.W:
-                    // Move forward in the direction we're facing
-                    playerPosition += new Vec2(
-                        (float)Math.Sin(playerRotation) * playerSpeed,
-                        -(float)Math.Cos(playerRotation) * playerSpeed
-                    );
-                    // Wrap around screen
-                    playerPosition = new Vec2(
-                        (playerPosition.X + screenWidth) % screenWidth,
-                        (playerPosition.Y + screenHeight) % screenHeight
-                    );
-                    break;
-                case ConsoleKey.A:
-                    playerRotation -= rotationSpeed;
-                    break;
-                case ConsoleKey.D:
-                    playerRotation += rotationSpeed;
-                    break;
-                case ConsoleKey.Spacebar:
-                    // Shoot bullet in the direction we're facing
-                    Vec2 bulletVelocity = new Vec2(
-                        (float)Math.Sin(playerRotation) * 1.5f, // Increased bullet speed
-                        -(float)Math.Cos(playerRotation) * 1.5f
-                    );
-                    bullets.Add((playerPosition, bulletVelocity));
-                    break;
             }
         }
     }

@@ -85,4 +85,9 @@ public class SpaceStationScene : IScene
 
         buffer.DrawText(35, 13, "SYS OK", Color.LightGreen);
     }
+
+    public void Input(int keyCode, bool state)
+    {
+        // Space station scene doesn't need input handling
+    }
 }

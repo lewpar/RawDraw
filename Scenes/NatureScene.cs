@@ -45,6 +45,11 @@ public class NatureScene : IScene
         DrawGrass(buffer, 0, height - 40, width, 40, 5);
     }
 
+    public void Input(int keyCode, bool state)
+    {
+        // Nature scene doesn't need input handling
+    }
+
     private void DrawSun(FrameBuffer buffer, int centerX, int centerY, int radius, Color color)
     {
         for (int y = -radius; y <= radius; y++)

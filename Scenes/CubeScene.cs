@@ -98,4 +98,9 @@ public class CubeScene : IScene
             }
         }
     }
+
+    public void Input(int keyCode, bool state)
+    {
+        // Cube scene doesn't need input handling
+    }
 }
