@@ -4,7 +4,7 @@ using RawDraw.Engine.Primitive;
 
 namespace RawDraw.Engine.Drawing;
 
-public class FrameBuffer
+public class FrameBuffer : IDisposable
 {
     private FrameBufferInfo _frameInfo;
     private RenderEngineOptions _renderOptions;
@@ -264,5 +264,12 @@ public class FrameBuffer
     public void SwapBuffers()
     {
         _frameBufferAccessor.WriteArray(0, _softwareBackBuffer, 0, _softwareBackBuffer.Length);
+    }
+
+    public void Dispose()
+    {
+        _frameBufferAccessor.Dispose();
+        _frameBufferMemoryMap.Dispose();
+        _frameBufferStream.Dispose();
     }
 }

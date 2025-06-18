@@ -35,7 +35,7 @@ public class KeyboardReader
     {
         if (!File.Exists(_devicePath))
         {
-            Console.WriteLine($"Device not found: {_devicePath}");
+            throw new FileNotFoundException($"Input device not found: {_devicePath}");
             return false;
         }
 
@@ -46,13 +46,11 @@ public class KeyboardReader
         }
         catch (UnauthorizedAccessException)
         {
-            Console.WriteLine($"Permission denied. Try running: sudo usermod -aG input $USER");
-            return false;
+            throw new UnauthorizedAccessException($"Permission denied to access input device. Try running: sudo usermod -aG input $USER");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to open device: {ex.Message}");
-            return false;
+            throw new IOException($"Failed to open input device: {ex.Message}", ex);
         }
     }
 

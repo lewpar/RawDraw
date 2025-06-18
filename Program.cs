@@ -8,7 +8,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var engine = new RenderEngine(new RenderEngineOptions()
+        using var engine = new RenderEngine(new RenderEngineOptions()
         {
             FrameBufferDevice = "/dev/fb0",
             InputDevice = "/dev/input/event3",
@@ -17,8 +17,13 @@ class Program
         });
 
         engine.Initialize();
-
         engine.SceneManager.Push(new TestScene());
+
+        Console.CancelKeyPress += (s, e) =>
+        {
+            e.Cancel = true;
+            Environment.Exit(0);
+        };
 
         while (true)
         {

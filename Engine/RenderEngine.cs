@@ -8,7 +8,7 @@ using RawDraw.Engine.Scene;
 
 namespace RawDraw.Engine;
 
-public class RenderEngine
+public class RenderEngine : IDisposable
 {
     public RenderEngineOptions RenderOptions { get => _renderOptions; }
     private RenderEngineOptions _renderOptions;
@@ -180,6 +180,9 @@ public class RenderEngine
             _ = Console.ReadKey(true);
         }
 
+        _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
+        _deltaTimer.Restart();
+
         SceneManager.CurrentScene.Update(_deltaTimeMs);
         SceneManager.CurrentScene.Draw(_frameBuffer);
 
@@ -189,8 +192,11 @@ public class RenderEngine
         }
 
         _frameBuffer.SwapBuffers();
+    }
 
-        _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
-        _deltaTimer.Restart();
+    public void Dispose()
+    {
+        _inputManager?.Dispose();
+        _frameBuffer?.Dispose();
     }
 }

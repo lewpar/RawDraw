@@ -9,6 +9,8 @@ public class KeyboardReader
     private readonly string _devicePath;
     private FileStream? _deviceStream;
     private readonly BlockingCollection<InputEvent> _eventQueue = new();
+    private readonly HashSet<KeyCodes> _keysDown = new();
+    private readonly object _lockObject = new();
 
     [StructLayout(LayoutKind.Sequential)]
     public struct InputEvent
@@ -54,54 +56,53 @@ public class KeyboardReader
         }
     }
 
-    public async Task ProcessKeyEventsAsync()
+    public async Task ProcessKeyEventsAsync(CancellationToken cancellationToken)
     {
+        if (_deviceStream is null)
+            throw new InvalidOperationException("Device not initialized.");
+
         var buffer = new byte[Marshal.SizeOf(typeof(InputEvent))];
 
-        if (_deviceStream is null)
-        {
-            return;
-        }
-
-        while (true)
+        while (!cancellationToken.IsCancellationRequested)
         {
             try
             {
-                int bytesRead = await _deviceStream.ReadAsync(buffer, 0, buffer.Length);
+                int bytesRead = await _deviceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
                 if (bytesRead == buffer.Length)
                 {
                     var inputEvent = ByteArrayToStructure<InputEvent>(buffer);
-                    _eventQueue.Add(inputEvent);
+                    if (inputEvent.Type == EV_KEY)
+                    {
+                        var keyCode = (KeyCodes)inputEvent.Code;
+                        var isPressed = inputEvent.Value == 1;
+
+                        lock (_lockObject)
+                        {
+                            if (isPressed)
+                                _keysDown.Add(keyCode);
+                            else
+                                _keysDown.Remove(keyCode);
+                        }
+                    }
                 }
             }
-            catch
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception)
             {
                 break;
             }
         }
     }
 
-    public bool TryReadNextEvent(out InputEvent inputEvent)
+    public bool IsKeyDown(KeyCodes keyCode)
     {
-        return _eventQueue.TryTake(out inputEvent);
-    }
-
-    public bool TryGetKeyEvent(out ushort keyCode, out bool pressed)
-    {
-        keyCode = 0;
-        pressed = false;
-
-        if (TryReadNextEvent(out var ev))
+        lock (_lockObject)
         {
-            if (ev.Type == EV_KEY && (ev.Value == 0 || ev.Value == 1))
-            {
-                keyCode = ev.Code;
-                pressed = ev.Value == 1;
-                return true;
-            }
+            return _keysDown.Contains(keyCode);
         }
-
-        return false;
     }
 
     private static T ByteArrayToStructure<T>(byte[] bytes) where T : struct

@@ -9,15 +9,13 @@ public class TestScene : RenderScene
 {
     private float posX = 80;
     private float posY = 80;
-
-    private float moveSpeed = 1f;
+    private float moveSpeed = 100f; // Increased for better visibility
+    private bool hasLoggedInputCheck = false;
 
     public override void OnDraw(FrameBuffer buffer)
     {
         buffer.Clear(Color.Black);
-
         buffer.DrawText(30, 30, "Hello, World!", Color.White);
-
         buffer.FillRect((int)posX, (int)posY, 10, 10, Color.White);
     }
 
@@ -25,28 +23,34 @@ public class TestScene : RenderScene
     {
         if (Input is null)
         {
-            throw new Exception("Input manager not initialized.");
+            if (!hasLoggedInputCheck)
+            {
+                throw new InvalidOperationException("Input manager is not initialized in TestScene");
+                hasLoggedInputCheck = true;
+            }
+            return;
         }
+
+        float normalizedDelta = deltaTimeMs / 1000f; // Convert to seconds
 
         if (Input.IsKeyDown(KeyCodes.KEY_W))
         {
-            Console.WriteLine("Key W down.");
-            posY -= moveSpeed * deltaTimeMs;
-        }
-
-        if (Input.IsKeyDown(KeyCodes.KEY_A))
-        {
-            posX -= moveSpeed * deltaTimeMs;
+            posY -= moveSpeed * normalizedDelta;
         }
 
         if (Input.IsKeyDown(KeyCodes.KEY_S))
         {
-            posY += moveSpeed * deltaTimeMs;
+            posY += moveSpeed * normalizedDelta;
         }
-        
+
+        if (Input.IsKeyDown(KeyCodes.KEY_A))
+        {
+            posX -= moveSpeed * normalizedDelta;
+        }
+
         if (Input.IsKeyDown(KeyCodes.KEY_D))
         {
-            posX += moveSpeed * deltaTimeMs;
+            posX += moveSpeed * normalizedDelta;
         }
     }
 }

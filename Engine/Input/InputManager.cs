@@ -2,48 +2,38 @@ using System.Collections.Concurrent;
 
 namespace RawDraw.Engine.Input;
 
-public class InputManager
+public class InputManager : IDisposable
 {
     private KeyboardReader _keyReader;
-    private readonly HashSet<KeyCodes> _keysDown = new();
+    private Task? _keyProcessingTask;
+    private CancellationTokenSource _cancellationTokenSource;
 
     public InputManager(RenderEngineOptions options)
     {
         _keyReader = new KeyboardReader(options.InputDevice);
+        _cancellationTokenSource = new CancellationTokenSource();
     }
 
     public void Initialize()
     {
         _keyReader.Initialize();
-
-        _ = Task.Run(ProcessKeyEventsAsync);
+        _keyProcessingTask = Task.Run(ProcessKeyEventsAsync);
     }
 
     private async Task ProcessKeyEventsAsync()
     {
-        while (true)
-        {
-            while (_keyReader.TryGetKeyEvent(out ushort code, out bool pressed))
-            {
-                var key = (KeyCodes)code;
-                lock (_keysDown)
-                {
-                    if (pressed)
-                        _keysDown.Add(key);
-                    else
-                        _keysDown.Remove(key);
-                }
-            }
-
-            await Task.Delay(1);
-        }
+        await _keyReader.ProcessKeyEventsAsync(_cancellationTokenSource.Token);
     }
 
     public bool IsKeyDown(KeyCodes keyCode)
     {
-        lock (_keysDown)
-        {
-            return _keysDown.Contains(keyCode);
-        }
+        return _keyReader.IsKeyDown(keyCode);
+    }
+
+    public void Dispose()
+    {
+        _cancellationTokenSource.Cancel();
+        _keyProcessingTask?.Wait();
+        _cancellationTokenSource.Dispose();
     }
 }
