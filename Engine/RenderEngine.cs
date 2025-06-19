@@ -246,8 +246,6 @@ public class RenderEngine : IDisposable
 
         if (_renderOptions.ShowMouseCursor)
         {
-            
-
             UpdateMousePosition();
             RenderMouseCursor();
         }
