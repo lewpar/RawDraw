@@ -8,7 +8,6 @@ public class KeyboardReader
     private const ushort EV_KEY = 0x01;
     private readonly string _devicePath;
     private FileStream? _deviceStream;
-    private readonly BlockingCollection<InputEvent> _eventQueue = new();
     private readonly HashSet<KeyCodes> _keysDown = new();
     private readonly object _lockObject = new();
 
