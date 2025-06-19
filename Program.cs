@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using RawDraw.Engine;
+﻿using RawDraw.Engine;
 using RawDraw.Scenes;
 
 namespace RawDraw;
