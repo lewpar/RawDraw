@@ -67,7 +67,7 @@ public class FrameBuffer : IDisposable
         Buffer.BlockCopy(rawColor, 0, _softwareBackBuffer, pixelOffset, _bytesPerPixel);
     }
 
-    public void FillTriangle(Point p1, Point p2, Point p3, Color color)
+    public void FillTriangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
     {
         // Sort points by Y ascending (p1.Y <= p2.Y <= p3.Y)
         if (p2.y < p1.y) (p1, p2) = (p2, p1);
@@ -88,7 +88,7 @@ public class FrameBuffer : IDisposable
         float ex = p1.x;
 
         // Draw upper part of triangle (flat bottom)
-        for (int y = p1.y; y <= p2.y; y++)
+        for (int y = (int)p1.y; y <= p2.y; y++)
         {
             if (y < 0 || y >= _frameInfo.Height)
             {
@@ -119,7 +119,7 @@ public class FrameBuffer : IDisposable
         ex = p1.x + dx2 * (p2.y - p1.y);
 
         // Draw lower part of triangle (flat top)
-        for (int y = p2.y; y <= p3.y; y++)
+        for (int y = (int)p2.y; y <= p3.y; y++)
         {
             if (y < 0 || y >= _frameInfo.Height)
             {

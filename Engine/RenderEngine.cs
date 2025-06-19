@@ -28,12 +28,15 @@ public class RenderEngine : IDisposable
     private long _deltaTimeMs;
     private Stopwatch _deltaTimer;
 
+    private Vector2 _mouseCursorPosition;
+
     public RenderEngine(RenderEngineOptions renderOptions)
     {
         _renderOptions = renderOptions;
         _sceneManager = new SceneManager();
         _inputManager = new InputManager(renderOptions);
         _deltaTimer = new Stopwatch();
+        _mouseCursorPosition = new Vector2(0, 0);
     }
 
     public void Initialize()
@@ -68,6 +71,8 @@ public class RenderEngine : IDisposable
         }
 
         _inputManager.Initialize();
+
+        _mouseCursorPosition = new Vector2(_frameBufferInfo.Width / 2, _frameBufferInfo.Height / 2);
     }
 
     public static FrameBufferInfo? GetFrameBufferInfo()
@@ -157,6 +162,54 @@ public class RenderEngine : IDisposable
         _frameBuffer.DrawText(15, 15, $"Frame Diff (ms): {_deltaTimeMs}", Color.White);
     }
 
+    private void UpdateMousePosition()
+    {
+        if (_frameBufferInfo is null)
+        {
+            return;
+        }
+
+        var mouseDelta = _inputManager.GetMouseDelta();
+
+        var newMouseX = _mouseCursorPosition.x + mouseDelta.x;
+        var newMouseY = _mouseCursorPosition.y + mouseDelta.y;
+
+        if (newMouseX <= 0)
+        {
+            newMouseX = 0;
+        }
+        
+        if (newMouseX >= _frameBufferInfo.Width)
+        {
+            newMouseX = _frameBufferInfo.Width;
+        }
+
+        if (newMouseY <= 0)
+        {
+            newMouseY = 0;
+        }
+
+        if (newMouseY >= _frameBufferInfo.Height)
+        {
+            newMouseY = _frameBufferInfo.Height;
+        }
+
+        _mouseCursorPosition = new Vector2(newMouseX, newMouseY);
+    }
+
+    private void RenderMouseCursor()
+    {
+        if (_frameBuffer is null)
+        {
+            return;
+        }
+
+        _frameBuffer.FillTriangle(new Vector2(_mouseCursorPosition.x, _mouseCursorPosition.y),
+                                    new Vector2(_mouseCursorPosition.x + 8, _mouseCursorPosition.y + 5),
+                                    new Vector2(_mouseCursorPosition.x + 2, _mouseCursorPosition.y + 10),
+                                    Color.Red);
+    }
+
     public void Update()
     {
         if (_frameBuffer is null)
@@ -189,6 +242,14 @@ public class RenderEngine : IDisposable
         if (_renderOptions.ShowMetrics)
         {
             RenderMetrics();
+        }
+
+        if (_renderOptions.ShowMouseCursor)
+        {
+            
+
+            UpdateMousePosition();
+            RenderMouseCursor();
         }
 
         _frameBuffer.SwapBuffers();

@@ -13,7 +13,9 @@ class Program
             FrameBufferDevice = "/dev/fb0",
             InputDevice = "/dev/input/event3",
             ShowMetrics = true,
-            HideConsoleCaret = true
+            HideConsoleCaret = true,
+            MouseDevice = "/dev/input/event6",
+            ShowMouseCursor = true,
         });
 
         engine.Initialize();

@@ -7,4 +7,7 @@ public class RenderEngineOptions
 
     public bool ShowMetrics { get; init; }
     public bool HideConsoleCaret { get; init; }
+
+    public required string MouseDevice { get; init; }
+    public bool ShowMouseCursor { get; init; }
 }
