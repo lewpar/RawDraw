@@ -5,6 +5,7 @@ using RawDraw.Engine.Drawing;
 using RawDraw.Engine.Input;
 using RawDraw.Engine.Primitive;
 using RawDraw.Engine.Scene;
+using RawDraw.Engine.UI;
 
 namespace RawDraw.Engine;
 
@@ -18,6 +19,9 @@ public class RenderEngine : IDisposable
 
     public InputManager InputManager { get => _inputManager; }
     private InputManager _inputManager;
+
+    public UIManager UIManager { get => _uiManager; }
+    private UIManager _uiManager;
 
     public FrameBuffer? FrameBuffer { get => _frameBuffer; }
     private FrameBuffer? _frameBuffer;
@@ -36,6 +40,7 @@ public class RenderEngine : IDisposable
         _renderOptions = renderOptions;
         _sceneManager = new SceneManager();
         _inputManager = new InputManager(renderOptions);
+        _uiManager = new UIManager();
         _deltaTimer = new Stopwatch();
         _mouseCursorPosition = new Vector2(0, 0);
         _touchCursorPosition = new Vector2(0, 0);
@@ -73,6 +78,7 @@ public class RenderEngine : IDisposable
         }
 
         _inputManager.Initialize();
+        _uiManager.Initialize(_frameBufferInfo.Width, _frameBufferInfo.Height);
 
         _mouseCursorPosition = new Vector2(_frameBufferInfo.Width / 2, _frameBufferInfo.Height / 2);
     }
@@ -251,6 +257,17 @@ public class RenderEngine : IDisposable
             SceneManager.CurrentScene.Input = _inputManager;
         }
 
+        if (SceneManager.CurrentScene is RenderScene renderScene && renderScene.UI != null)
+        {
+            // Sync UIManager with scene's UI property
+            // (optional: could allow scene to add elements to engine's UIManager)
+            foreach (var element in renderScene.UI.Elements)
+            {
+                if (!UIManager.Elements.Contains(element))
+                    UIManager.Add(element);
+            }
+        }
+
         // Consume any console keys so they dont get rendered.
 #if !DEBUG
         if (Console.KeyAvailable)
@@ -264,6 +281,11 @@ public class RenderEngine : IDisposable
 
         SceneManager.CurrentScene.Update(_deltaTimeMs);
         SceneManager.CurrentScene.Draw(_frameBuffer);
+
+        // UI: update and draw
+        var (normX, normY, isTouching) = _inputManager.GetTouchState();
+        UIManager.UpdateTouch(normX, normY, isTouching);
+        UIManager.Draw(_frameBuffer);
 
         if (_renderOptions.ShowMetrics)
         {
