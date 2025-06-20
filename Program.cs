@@ -15,6 +15,10 @@ class Program
             HideConsoleCaret = true,
             MouseDevice = "/dev/input/event6",
             ShowMouseCursor = true,
+            TouchDevice = "/dev/input/event5",
+            ShowTouchCursor = true,
+            MaxTouchX = 1452,
+            MaxTouchY = 912
         });
 
         engine.Initialize();

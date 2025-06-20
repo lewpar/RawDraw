@@ -10,4 +10,9 @@ public class RenderEngineOptions
 
     public required string MouseDevice { get; init; }
     public bool ShowMouseCursor { get; init; }
+
+    public required string TouchDevice { get; init; }
+    public bool ShowTouchCursor { get; init; }
+    public int MaxTouchX { get; init; }
+    public int MaxTouchY { get; init; }
 }

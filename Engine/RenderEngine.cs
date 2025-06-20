@@ -29,6 +29,7 @@ public class RenderEngine : IDisposable
     private Stopwatch _deltaTimer;
 
     private Vector2 _mouseCursorPosition;
+    private Vector2 _touchCursorPosition;
 
     public RenderEngine(RenderEngineOptions renderOptions)
     {
@@ -37,6 +38,7 @@ public class RenderEngine : IDisposable
         _inputManager = new InputManager(renderOptions);
         _deltaTimer = new Stopwatch();
         _mouseCursorPosition = new Vector2(0, 0);
+        _touchCursorPosition = new Vector2(0, 0);
     }
 
     public void Initialize()
@@ -210,6 +212,27 @@ public class RenderEngine : IDisposable
                                     Color.Red);
     }
 
+    private void UpdateTouchPosition()
+    {
+        _touchCursorPosition = _inputManager.GetTouchPositionNormalized();
+    }
+
+    private void RenderTouchCursor()
+    {
+        if (_frameBuffer is null ||
+            _frameBufferInfo is null)
+        {
+            return;
+        }
+
+        var isTouching = _inputManager.IsTouching();
+
+        var x = _touchCursorPosition.x * _frameBufferInfo.Width;
+        var y = _touchCursorPosition.y * _frameBufferInfo.Height;
+
+        _frameBuffer.FillRect((int)x, (int)y, 10, 10, isTouching ? Color.Red : Color.Gray);
+    }
+
     public void Update()
     {
         if (_frameBuffer is null)
@@ -228,10 +251,12 @@ public class RenderEngine : IDisposable
         }
 
         // Consume any console keys so they dont get rendered.
+#if !DEBUG
         if (Console.KeyAvailable)
         {
             _ = Console.ReadKey(true);
         }
+#endif
 
         _deltaTimeMs = _deltaTimer.ElapsedMilliseconds;
         _deltaTimer.Restart();
@@ -248,6 +273,12 @@ public class RenderEngine : IDisposable
         {
             UpdateMousePosition();
             RenderMouseCursor();
+        }
+
+        if (_renderOptions.ShowTouchCursor)
+        {
+            UpdateTouchPosition();
+            RenderTouchCursor();
         }
 
         _frameBuffer.SwapBuffers();
