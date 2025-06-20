@@ -1,4 +1,5 @@
 ﻿using RawDraw.Engine;
+using RawDraw.Engine.Input;
 using RawDraw.Scenes;
 
 namespace RawDraw;
@@ -10,13 +11,11 @@ class Program
         using var engine = new RenderEngine(new RenderEngineOptions()
         {
             FrameBufferDevice = "/dev/fb0",
-            InputDevice = "/dev/input/event3",
+            KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
             ShowMetrics = true,
             HideConsoleCaret = true,
-            MouseDevice = "/dev/input/event6",
-            ShowMouseCursor = true,
-            TouchDevice = "/dev/input/event5",
-            ShowTouchCursor = true,
+            MouseDevice = InputDeviceEnumerator.AutoDetectMouseDevice(),
+            TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
             MaxTouchX = 1452,
             MaxTouchY = 912
         });

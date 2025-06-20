@@ -48,9 +48,9 @@ public class RenderEngine : IDisposable
             throw new Exception($"Failed to find frame buffer at path '{RenderOptions.FrameBufferDevice}'.");
         }
 
-        if (!File.Exists(RenderOptions.InputDevice))
+        if (!File.Exists(RenderOptions.KeyboardDevice))
         {
-            throw new Exception($"Failed to find input device at path '{RenderOptions.InputDevice}'.");
+            throw new Exception($"Failed to find input device at path '{RenderOptions.KeyboardDevice}'.");
         }
 
         var frameBufferInfo = GetFrameBufferInfo();
@@ -171,10 +171,10 @@ public class RenderEngine : IDisposable
             return;
         }
 
-        var mouseDelta = _inputManager.GetMouseDelta();
+        var (dx, dy, _) = _inputManager.GetMouseDelta();
 
-        var newMouseX = _mouseCursorPosition.x + mouseDelta.x;
-        var newMouseY = _mouseCursorPosition.y + mouseDelta.y;
+        var newMouseX = _mouseCursorPosition.x + dx;
+        var newMouseY = _mouseCursorPosition.y + dy;
 
         if (newMouseX <= 0)
         {
@@ -214,7 +214,8 @@ public class RenderEngine : IDisposable
 
     private void UpdateTouchPosition()
     {
-        _touchCursorPosition = _inputManager.GetTouchPositionNormalized();
+        var (x, y, _) = _inputManager.GetTouchState();
+        _touchCursorPosition = new Vector2(x, y);
     }
 
     private void RenderTouchCursor()
@@ -225,7 +226,7 @@ public class RenderEngine : IDisposable
             return;
         }
 
-        var isTouching = _inputManager.IsTouching();
+        var (_, _, isTouching) = _inputManager.GetTouchState();
 
         var x = _touchCursorPosition.x * _frameBufferInfo.Width;
         var y = _touchCursorPosition.y * _frameBufferInfo.Height;
@@ -269,13 +270,13 @@ public class RenderEngine : IDisposable
             RenderMetrics();
         }
 
-        if (_renderOptions.ShowMouseCursor)
+        if (!string.IsNullOrWhiteSpace(_renderOptions.MouseDevice))
         {
             UpdateMousePosition();
             RenderMouseCursor();
         }
 
-        if (_renderOptions.ShowTouchCursor)
+        if (!string.IsNullOrWhiteSpace(_renderOptions.TouchDevice))
         {
             UpdateTouchPosition();
             RenderTouchCursor();

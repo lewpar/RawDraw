@@ -2,13 +2,10 @@ using System.Runtime.InteropServices;
 
 namespace RawDraw.Engine.Input;
 
-public class KeyboardReader
+public class KeyboardReader : LinuxInputDeviceReader<KeyboardReader.InputEvent>
 {
     private const ushort EV_KEY = 0x01;
-    private readonly string _devicePath;
-    private FileStream? _deviceStream;
     private readonly HashSet<KeyCodes> _keysDown = new();
-    private readonly object _lockObject = new();
 
     [StructLayout(LayoutKind.Sequential)]
     public struct InputEvent
@@ -26,88 +23,29 @@ public class KeyboardReader
         public long TvUsec;
     }
 
-    public KeyboardReader(string devicePath)
+    public KeyboardReader(string devicePath) : base(devicePath) { }
+
+    protected override void OnInputEvent(InputEvent inputEvent)
     {
-        _devicePath = devicePath;
-    }
-
-    public void Initialize()
-    {
-        if (!File.Exists(_devicePath))
-            throw new Exception($"Device not found: {_devicePath}");
-
-        try
+        if (inputEvent.Type == EV_KEY)
         {
-            _deviceStream = new FileStream(
-                _devicePath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.ReadWrite | FileShare.Delete);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            throw new Exception($"Permission denied. Try running: sudo usermod -aG input $USER");
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed to open device: {ex.Message}");
-        }
-    }
-
-    public async Task ProcessKeyEventsAsync(CancellationToken cancellationToken)
-    {
-        if (_deviceStream is null)
-            throw new InvalidOperationException("Device not initialized.");
-
-        var buffer = new byte[Marshal.SizeOf(typeof(InputEvent))];
-
-        while (!cancellationToken.IsCancellationRequested)
-        {
-            try
+            var keyCode = (KeyCodes)inputEvent.Code;
+            var isPressed = inputEvent.Value > 0;
+            lock (LockObject)
             {
-                int bytesRead = await _deviceStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                if (bytesRead == buffer.Length)
-                {
-                    var inputEvent = ByteArrayToStructure<InputEvent>(buffer);
-                    if (inputEvent.Type == EV_KEY)
-                    {
-                        var keyCode = (KeyCodes)inputEvent.Code;
-                        var isPressed = inputEvent.Value > 0;
-
-                        lock (_lockObject)
-                        {
-                            if (isPressed)
-                                _keysDown.Add(keyCode);
-                            else
-                                _keysDown.Remove(keyCode);
-                        }
-                    }
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                break;
-            }
-            catch (Exception)
-            {
-                break;
+                if (isPressed)
+                    _keysDown.Add(keyCode);
+                else
+                    _keysDown.Remove(keyCode);
             }
         }
     }
 
     public bool IsKeyDown(KeyCodes keyCode)
     {
-        lock (_lockObject)
+        lock (LockObject)
         {
             return _keysDown.Contains(keyCode);
         }
-    }
-
-    private static T ByteArrayToStructure<T>(byte[] bytes) where T : struct
-    {
-        GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-        T structure = Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
-        handle.Free();
-        return structure;
     }
 }
