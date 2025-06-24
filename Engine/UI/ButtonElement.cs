@@ -9,6 +9,9 @@ public class ButtonElement : UIElement
 {
     [XmlAttribute("text")]
     public string? Text { get; set; }
+    
+    [XmlAttribute("font-size")]
+    public int FontSize { get; set; }
 
     [XmlAttribute("border-size")]
     public int BorderSize { get; set; } = 3;
@@ -57,12 +60,17 @@ public class ButtonElement : UIElement
 
     public override void Draw(FrameBuffer buffer)
     {
-        buffer.FillRect(X, Y, (Width > 0 ? Width : MeasureText(Text ?? "")) + (Padding * 2), 8 + (Padding * 2), Background);
-        buffer.DrawRect(X, Y, Width + (Padding * 2), Height + (Padding * 2), BorderSize, BorderColor);
+        buffer.FillRect(X, Y, 
+            (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+            FontSize + (Padding * 2), Background);
+        
+        buffer.DrawRect(X, Y, 
+            (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+            FontSize + (Padding * 2), BorderSize, BorderColor);
 
         if (!string.IsNullOrWhiteSpace(Text))
         {
-            buffer.DrawText(X + Padding, Y + Padding, Text, Foreground);   
+            buffer.DrawText(X + Padding, Y + Padding, Text, Foreground, FontSize);   
         }
     }
 }

@@ -247,14 +247,18 @@ public class FrameBuffer : IDisposable
         FillRect(rect.x, rect.y, rect.width, rect.height, color);
     }
 
-    private void DrawChar(int x, int y, char character, Color color)
+    private void DrawChar(int x, int y, char character, Color color, int fontSize = 8)
     {
-        character = char.ToUpper(character);
+        if (fontSize < 8)
+            fontSize = 8;
 
         if (!FrameBufferFont.Basic8x8.TryGetValue(character, out var font))
         {
             font = FrameBufferFont.Basic8x8[' '];
         }
+
+        // Calculate the pixel scaling factor based on font size
+        float scale = fontSize / 8f;
 
         for (int row = 0; row < 8; row++)
         {
@@ -263,20 +267,37 @@ public class FrameBuffer : IDisposable
             {
                 if ((bits & (1 << (7 - col))) != 0)
                 {
-                    DrawPixel(x + col, y + row, color);
+                    // Draw a block scaled to the requested font size
+                    int px = x + (int)(col * scale);
+                    int py = y + (int)(row * scale);
+
+                    // Draw the scaled pixel (as a filled rectangle)
+                    for (int dy = 0; dy < scale; dy++)
+                    {
+                        for (int dx = 0; dx < scale; dx++)
+                        {
+                            DrawPixel(px + dx, py + dy, color);
+                        }
+                    }
                 }
             }
         }
     }
 
-    public void DrawText(int x, int y, string text, Color color)
+    public void DrawText(int x, int y, string text, Color color, int fontSize = 8)
     {
+        if (fontSize < 8)
+            fontSize = 8;
+
+        int cellWidth = fontSize;
+
         for (int i = 0; i < text.Length; i++)
         {
-            DrawChar(x + i * 8, y, text[i], color);
+            int charX = x + i * cellWidth;
+            DrawChar(charX, y, text[i], color, fontSize);
         }
 
-        DirtyRegions.Add(new Rectangle(x, y, text.Length * 8, 8));
+        DirtyRegions.Add(new Rectangle(x, y, text.Length * fontSize, fontSize));
     }
     
     public void SwapBuffers()

@@ -32,8 +32,8 @@ public abstract class UIElement
         }
     }
 
-    public int MeasureText(string text)
+    public int MeasureText(int fontSize, string text)
     {
-        return text.Length * 8;
+        return text.Length * fontSize;
     }
 } 
