@@ -6,6 +6,16 @@ public static class XmlParser
 {
     public const string NAMESPACE = "http://rawdraw.com/ui";
 
+    private static void SetParent(UIElement element, UIElement parent)
+    {
+        element.Parent = parent;
+
+        foreach (var child in element.Children)
+        {
+            SetParent(child, element);
+        }
+    }
+
     public static FrameElement Load(string path)
     {
         if (!File.Exists(path))
@@ -16,12 +26,17 @@ public static class XmlParser
         var xml = File.OpenRead(path);
         var serializer = new XmlSerializer(typeof(FrameElement), NAMESPACE);
 
-        var frame = serializer.Deserialize(xml);
+        var frame = serializer.Deserialize(xml) as FrameElement;
         if (frame is null)
         {
             throw new Exception($"Failed to deserialize frame element from path '{path}'.");
         }
 
-        return (FrameElement)frame;
+        foreach (var child in frame.Children)
+        {
+            SetParent(child, frame);
+        }
+
+        return frame;
     }
 }
