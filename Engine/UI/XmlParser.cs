@@ -1,3 +1,5 @@
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 
 namespace RawDraw.Engine.UI;
@@ -22,11 +24,20 @@ public static class XmlParser
         {
             throw new FileNotFoundException($"No ui exists at path '{path}'.");
         }
+        
+        var xmlSettings = new XmlReaderSettings();
+        
+        xmlSettings.ValidationType = ValidationType.Schema;
+        xmlSettings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
+        xmlSettings.Schemas.Add(NAMESPACE, "./UI/ui.xsd");
 
-        var xml = File.OpenRead(path);
+        xmlSettings.ValidationEventHandler += (sender, args) => throw new Exception(args.Message);
+        
+        var xmlStream = File.OpenRead(path);
+        var xmlReader = XmlReader.Create(xmlStream, xmlSettings);
         var serializer = new XmlSerializer(typeof(FrameElement), NAMESPACE);
 
-        var frame = serializer.Deserialize(xml) as FrameElement;
+        var frame = serializer.Deserialize(xmlReader) as FrameElement;
         if (frame is null)
         {
             throw new Exception($"Failed to deserialize frame element from path '{path}'.");
