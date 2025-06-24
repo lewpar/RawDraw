@@ -1,3 +1,5 @@
+using RawDraw.Engine.UI;
+
 namespace RawDraw.Engine.Scene;
 
 public class SceneManager
@@ -13,6 +15,12 @@ public class SceneManager
 
     public void Push(Scene scene)
     {
+        if (!string.IsNullOrWhiteSpace(scene.UI))
+        {
+            var frame = XmlParser.Load(scene.UI);
+            scene.Frame = frame;   
+        }
+
         _scenes.Push(scene);
     }
 

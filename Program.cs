@@ -21,7 +21,10 @@ class Program
         });
 
         engine.Initialize();
-        engine.SceneManager.Push(new PlatformerScene());
+        engine.SceneManager.Push(new PlatformerScene()
+        {
+            UI = "UI/platformer.xml"
+        });
 
         Console.CancelKeyPress += (s, e) =>
         {

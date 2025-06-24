@@ -1,64 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           targetNamespace="http://example.com/ui"
-           xmlns="http://example.com/ui"
+           targetNamespace="http://rawdraw.com/ui"
+           xmlns="http://rawdraw.com/ui"
            elementFormDefault="qualified">
-
-  <!-- Root Frame -->
   <xs:element name="Frame">
     <xs:complexType>
       <xs:choice minOccurs="1" maxOccurs="1">
-        <xs:element ref="StackPanel"/>
-        <xs:element ref="Grid"/>
-        <xs:element ref="Canvas"/>
-        <!-- Add more allowed root UI elements -->
+        <xs:element ref="Rectangle" />
       </xs:choice>
     </xs:complexType>
   </xs:element>
-
-  <!-- StackPanel (can contain any UI element except Frame) -->
-  <xs:element name="StackPanel">
+  
+  <xs:element name="Rectangle">
     <xs:complexType>
-      <xs:sequence>
-        <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element ref="StackPanel"/>
-          <xs:element ref="Grid"/>
-          <xs:element ref="Canvas"/>
-          <xs:element ref="Button"/>
-          <xs:element ref="TextBox"/>
-          <!-- Add more elements except Frame -->
-        </xs:choice>
-      </xs:sequence>
-      <xs:attribute name="Orientation" use="optional">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="Vertical"/>
-            <xs:enumeration value="Horizontal"/>
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
+      <xs:attribute name="x" type="xs:int" use="required" />
+      <xs:attribute name="y" type="xs:int" use="required" />
+      <xs:attribute name="width" type="xs:int" use="required" />
+      <xs:attribute name="height" type="xs:int" use="required" />
     </xs:complexType>
   </xs:element>
-
-  <!-- Other containers -->
-  <xs:element name="Grid">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="Button" minOccurs="0" maxOccurs="unbounded"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="Canvas">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="Button" minOccurs="0" maxOccurs="unbounded"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <!-- Simple elements -->
-  <xs:element name="Button" type="xs:string"/>
-  <xs:element name="TextBox" type="xs:string"/>
-
 </xs:schema>

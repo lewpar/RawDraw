@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Frame xmlns="http://example.com/ui"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://example.com/ui ui.xsd">
-       <Grid>
-              
-       </Grid>
-</Frame>

@@ -273,10 +273,10 @@ public class RenderEngine : IDisposable
         
         SceneManager.CurrentScene.Draw(_frameBuffer);
 
-        foreach (var uiElement in SceneManager.CurrentScene.UIElements)
+        if (SceneManager.CurrentScene.Frame is not null)
         {
-            uiElement.Update(_deltaTimeMs);
-            uiElement.Draw(_frameBuffer);
+            SceneManager.CurrentScene.Frame.Update(_deltaTimeMs);
+            SceneManager.CurrentScene.Frame.Draw(_frameBuffer);
         }
 
         // UI: update and draw
