@@ -280,12 +280,12 @@ public class RenderEngine : IDisposable
         }
 
         // UI: update and draw
-            //var (normX, normY, isTouching) = _inputManager.GetTouchState();
+        //var (normX, normY, isTouching) = _inputManager.GetTouchState();
 
-            if (_renderOptions.ShowMetrics)
-            {
-                RenderMetrics();
-            }
+        if (_renderOptions.ShowMetrics)
+        {
+            RenderMetrics();
+        }
 
         if (!string.IsNullOrWhiteSpace(_renderOptions.MouseDevice))
         {
