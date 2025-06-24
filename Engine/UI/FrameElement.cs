@@ -5,12 +5,15 @@ namespace RawDraw.Engine.UI;
 
 public class FrameElement : UIElement
 {
-    public FrameElement(int x, int y, int width, int height) : base(x, y, width, height)
+    private Color _color;
+
+    public FrameElement(int x, int y, int width, int height, Color color) : base(x, y, width, height)
     {
+        _color = color;
     }
 
-    public override void OnDraw(FrameBuffer buffer)
+    public override void Draw(FrameBuffer buffer)
     {
-        buffer.FillRect(Bounds, Color.Gray);
+        buffer.FillRect(Bounds, _color);
     }
 }

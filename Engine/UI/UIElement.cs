@@ -20,6 +20,6 @@ public abstract class UIElement
         Bounds = new Rectangle(x, y, width, height);
     }
 
-    public virtual void OnDraw(FrameBuffer buffer) { }
-    public virtual void OnUpdate(float deltaTimeMs) { }
+    public virtual void Draw(FrameBuffer buffer) { }
+    public virtual void Update(float deltaTimeMs) { }
 } 

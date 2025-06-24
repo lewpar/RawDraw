@@ -273,13 +273,19 @@ public class RenderEngine : IDisposable
         
         SceneManager.CurrentScene.Draw(_frameBuffer);
 
-        // UI: update and draw
-        //var (normX, normY, isTouching) = _inputManager.GetTouchState();
-
-        if (_renderOptions.ShowMetrics)
+        foreach (var uiElement in SceneManager.CurrentScene.UIElements)
         {
-            RenderMetrics();
+            uiElement.Update(_deltaTimeMs);
+            uiElement.Draw(_frameBuffer);
         }
+
+        // UI: update and draw
+            //var (normX, normY, isTouching) = _inputManager.GetTouchState();
+
+            if (_renderOptions.ShowMetrics)
+            {
+                RenderMetrics();
+            }
 
         if (!string.IsNullOrWhiteSpace(_renderOptions.MouseDevice))
         {

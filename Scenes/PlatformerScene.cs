@@ -2,6 +2,7 @@ using RawDraw.Engine.Drawing;
 using RawDraw.Engine.Input;
 using RawDraw.Engine.Scene;
 using RawDraw.Engine.Primitive;
+using RawDraw.Engine.UI;
 
 namespace RawDraw.Scenes;
 
@@ -61,6 +62,8 @@ public class PlatformerScene : Scene
             new Platform(200, 250, 150, 20),   // Even higher platform
             new Platform(0, 450, 800, 20),     // Ground
         };
+
+        UIElements.Add(new FrameElement(10, 10, 100, 100, Color.Gray));
     }
 
     public override void Update(float deltaTimeMs)
