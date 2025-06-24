@@ -29,7 +29,7 @@ public class Platform
     }
 }
 
-public class PlatformerScene : RenderScene
+public class PlatformerScene : Scene
 {
     // Player properties
     private float playerX = 100;
@@ -63,7 +63,7 @@ public class PlatformerScene : RenderScene
         };
     }
 
-    public override void OnUpdate(float deltaTimeMs)
+    public override void Update(float deltaTimeMs)
     {
         if (Input is null)
         {
@@ -158,11 +158,8 @@ public class PlatformerScene : RenderScene
         }
     }
 
-    public override void OnDraw(FrameBuffer buffer)
+    public override void Draw(FrameBuffer buffer)
     {
-        // Clear screen
-        buffer.Clear(Color.Black);
-
         // Draw platforms
         foreach (var platform in platforms)
         {

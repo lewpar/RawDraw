@@ -13,6 +13,7 @@ public class FrameBuffer : IDisposable
     private MemoryMappedFile _frameBufferMemoryMap;
     private MemoryMappedViewAccessor _frameBufferAccessor;
 
+    public List<Rectangle> DirtyRegions { get; }
     private byte[] _softwareBackBuffer;
     private int _bytesPerPixel;
     private bool _is16Bit;
@@ -32,7 +33,13 @@ public class FrameBuffer : IDisposable
         _frameBufferMemoryMap = MemoryMappedFile.CreateFromFile(_frameBufferStream, null, frameBufferSize, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
         _frameBufferAccessor = _frameBufferMemoryMap.CreateViewAccessor(0, frameBufferSize, MemoryMappedFileAccess.Write);
 
+        DirtyRegions = new List<Rectangle>();
         _softwareBackBuffer = new byte[_frameInfo.Width * _frameInfo.Height * _bytesPerPixel];
+    }
+
+    public void Clear(Color color, Rectangle rect)
+    {
+        FillRectNoDirty(rect.x, rect.y, rect.width, rect.height, color);
     }
 
     public void Clear(Color color)
@@ -50,7 +57,7 @@ public class FrameBuffer : IDisposable
         }
     }
 
-    public void DrawPixel(int x, int y, Color color)
+    private void DrawPixel(int x, int y, Color color)
     {
         if (x < 0 || x >= _frameInfo.Width ||
             y < 0 || y >= _frameInfo.Height)
@@ -204,9 +211,12 @@ public class FrameBuffer : IDisposable
                 }
             }
         }
+
+
+        DirtyRegions.Add(new Rectangle(x, y, width, height));
     }
 
-    public void FillRect(int x, int y, int width, int height, Color color)
+    private void FillRectNoDirty(int x, int y, int width, int height, Color color)
     {
         for (int py = y; py < y + height; py++)
         {
@@ -226,12 +236,18 @@ public class FrameBuffer : IDisposable
             }
         }
     }
+
+    public void FillRect(int x, int y, int width, int height, Color color)
+    {
+        FillRectNoDirty(x, y, width, height, color);
+        DirtyRegions.Add(new Rectangle(x, y, width, height));
+    }
     public void FillRect(Rectangle rect, Color color)
     {
         FillRect(rect.x, rect.y, rect.width, rect.height, color);
     }
 
-    public void DrawChar(int x, int y, char character, Color color)
+    private void DrawChar(int x, int y, char character, Color color)
     {
         character = char.ToUpper(character);
 
@@ -259,6 +275,8 @@ public class FrameBuffer : IDisposable
         {
             DrawChar(x + i * 8, y, text[i], color);
         }
+
+        DirtyRegions.Add(new Rectangle(x, y, text.Length * 8, 8));
     }
     
     public void SwapBuffers()

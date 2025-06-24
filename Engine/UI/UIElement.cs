@@ -1,10 +1,25 @@
 using RawDraw.Engine.Drawing;
+using RawDraw.Engine.Primitive;
 
 namespace RawDraw.Engine.UI;
 
-public interface IUIElement
+public abstract class UIElement
 {
-    string Id { get; }
-    void Draw(FrameBuffer buffer);
-    void UpdateTouch(float normX, float normY, bool isTouching, int screenWidth, int screenHeight);
+    public Guid Id { get; init; }
+
+    public Vector2 Position { get; init; }
+
+    public Vector2 Size { get; init; }
+    public Rectangle Bounds { get; init; }
+
+    public UIElement(int x, int y, int width, int height)
+    {
+        Id = Guid.NewGuid();
+        Position = new Vector2(x, y);
+        Size = new Vector2(width, height);
+        Bounds = new Rectangle(x, y, width, height);
+    }
+
+    public virtual void OnDraw(FrameBuffer buffer) { }
+    public virtual void OnUpdate(float deltaTimeMs) { }
 } 

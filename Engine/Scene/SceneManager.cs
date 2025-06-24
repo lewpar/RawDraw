@@ -2,16 +2,16 @@ namespace RawDraw.Engine.Scene;
 
 public class SceneManager
 {
-    public RenderScene? CurrentScene { get => _scenes.Peek(); }
+    public Scene? CurrentScene { get => _scenes.Peek(); }
 
-    private Stack<RenderScene> _scenes;
+    private Stack<Scene> _scenes;
 
     public SceneManager()
     {
-        _scenes = new Stack<RenderScene>();
+        _scenes = new Stack<Scene>();
     }
 
-    public void Push(RenderScene scene)
+    public void Push(Scene scene)
     {
         _scenes.Push(scene);
     }
