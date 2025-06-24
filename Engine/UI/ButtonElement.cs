@@ -24,7 +24,7 @@ public class ButtonElement : UIElement
     
     public Color Foreground { get; set; }
 
-    [XmlAttribute("background")]
+    [XmlAttribute("foreground")]
     public string ForegroundHex
     {
         get => Color.ToHex(Foreground);
@@ -33,7 +33,7 @@ public class ButtonElement : UIElement
     
     public Color Background { get; set; }
 
-    [XmlAttribute("foreground")]
+    [XmlAttribute("background")]
     public string BackgroundHex
     {
         get => Color.ToHex(Background);
@@ -51,15 +51,18 @@ public class ButtonElement : UIElement
     
     [XmlAttribute("height")]
     public int Height { get; set; }
+    
+    [XmlAttribute("padding")]
+    public int Padding { get; set; }
 
     public override void Draw(FrameBuffer buffer)
     {
-        buffer.FillRect(X, Y, Width, Height, Background);
-        buffer.DrawRect(X, Y, Width, Height, BorderSize, BorderColor);
+        buffer.FillRect(X, Y, (Width > 0 ? Width : MeasureText(Text ?? "")) + (Padding * 2), 8 + (Padding * 2), Background);
+        buffer.DrawRect(X, Y, Width + (Padding * 2), Height + (Padding * 2), BorderSize, BorderColor);
 
         if (!string.IsNullOrWhiteSpace(Text))
         {
-            buffer.DrawText(X, Y, Text, Foreground);   
+            buffer.DrawText(X + Padding, Y + Padding, Text, Foreground);   
         }
     }
 }

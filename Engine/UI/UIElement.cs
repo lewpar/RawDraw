@@ -31,4 +31,9 @@ public abstract class UIElement
             child.Update(deltaTimeMs);
         }
     }
+
+    public int MeasureText(string text)
+    {
+        return text.Length * 8;
+    }
 } 

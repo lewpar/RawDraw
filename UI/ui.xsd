@@ -41,8 +41,11 @@
 
       <xs:attribute name="x" type="xs:int" use="required" />
       <xs:attribute name="y" type="xs:int" use="required" />
-      <xs:attribute name="width" type="xs:int" use="required" />
-      <xs:attribute name="height" type="xs:int" use="required" />
+      
+      <xs:attribute name="width" type="xs:int" default="0" />
+      <xs:attribute name="height" type="xs:int" default="0" />
+      
+      <xs:attribute name="padding" type="xs:int" default="4" />
     </xs:complexType>
   </xs:element>
 </xs:schema>
