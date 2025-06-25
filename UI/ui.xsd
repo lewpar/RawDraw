@@ -31,6 +31,8 @@
   
   <xs:element name="Button">
     <xs:complexType>
+      <xs:attribute name="handler" type="xs:string" />
+      
       <xs:attribute name="text" type="xs:string" />
       <xs:attribute name="font-size" type="xs:int" />
 

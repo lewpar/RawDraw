@@ -21,7 +21,7 @@ class Program
         });
 
         engine.Initialize();
-        engine.SceneManager.Push(new PlatformerScene()
+        engine.SceneManager.Push(new PlatformerRenderScene()
         {
             UI = "UI/platformer.xml"
         });

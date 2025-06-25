@@ -2,6 +2,7 @@ using RawDraw.Engine.Drawing;
 using RawDraw.Engine.Input;
 using RawDraw.Engine.Scene;
 using RawDraw.Engine.Primitive;
+using RawDraw.Engine.UI.Attributes;
 
 namespace RawDraw.Scenes;
 
@@ -29,7 +30,7 @@ public class Platform
     }
 }
 
-public class PlatformerScene : Scene
+public class PlatformerRenderScene : RenderScene
 {
     // Player properties
     private float _playerX = 100;
@@ -50,7 +51,7 @@ public class PlatformerScene : Scene
     // Platforms
     private List<Platform> _platforms;
 
-    public PlatformerScene()
+    public PlatformerRenderScene()
     {
         // Initialize platforms
         _platforms = new List<Platform>
@@ -61,6 +62,13 @@ public class PlatformerScene : Scene
             new Platform(200, 250, 150, 20),   // Even higher platform
             new Platform(0, 450, 800, 20),     // Ground
         };
+    }
+
+    [UIButtonHandler("jump")]
+    private void StartJump()
+    {
+        _playerVelocityY = JumpForce;
+        _isJumping = true;
     }
 
     public override void Update(float deltaTimeMs)
@@ -92,8 +100,7 @@ public class PlatformerScene : Scene
         // Handle jumping
         if (Input.IsKeyDown(KeyCodes.KEY_SPACE) && !_isJumping)
         {
-            _playerVelocityY = JumpForce;
-            _isJumping = true;
+            StartJump();
         }
 
         // Update position

@@ -4,24 +4,24 @@ namespace RawDraw.Engine.Scene;
 
 public class SceneManager
 {
-    public Scene? CurrentScene { get => _scenes.Peek(); }
+    public RenderScene? CurrentScene { get => _scenes.Peek(); }
 
-    private Stack<Scene> _scenes;
+    private Stack<RenderScene> _scenes;
 
     public SceneManager()
     {
-        _scenes = new Stack<Scene>();
+        _scenes = new Stack<RenderScene>();
     }
 
-    public void Push(Scene scene)
+    public void Push(RenderScene renderScene)
     {
-        if (!string.IsNullOrWhiteSpace(scene.UI))
+        if (!string.IsNullOrWhiteSpace(renderScene.UI))
         {
-            var frame = XmlParser.Load(scene.UI);
-            scene.Frame = frame;   
+            var frame = XmlParser.Load(renderScene, renderScene.UI);
+            renderScene.Frame = frame;   
         }
 
-        _scenes.Push(scene);
+        _scenes.Push(renderScene);
     }
 
     public void Pop()

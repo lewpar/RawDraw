@@ -80,9 +80,20 @@ public class ButtonElement : UIElement
         }
     }
 
+    [XmlAttribute("handler")]
+    public string? HandlerName { get; set; }
+    
+    [XmlIgnore]
+    public Action? Handler { get; set; }
+
     public void OnTouch()
     {
-        Console.WriteLine("Touching");
+        if (Handler is null)
+        {
+            return;
+        }
+
+        Handler.Invoke();
     }
 
     public override void Update(float deltaTimeMs)

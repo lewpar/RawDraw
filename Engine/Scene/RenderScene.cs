@@ -4,7 +4,7 @@ using RawDraw.Engine.UI;
 
 namespace RawDraw.Engine.Scene;
 
-public abstract class Scene
+public abstract class RenderScene
 {   
     public InputManager? Input { get; set; }
 
