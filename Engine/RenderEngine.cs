@@ -73,7 +73,7 @@ public class RenderEngine : IDisposable
             Console.Write("\x1b[?25l");
         }
 
-        _inputManager.Initialize();
+        _inputManager.Initialize(_frameBufferInfo.Width, _frameBufferInfo.Height);
 
         _mouseCursorPosition = new Vector2(_frameBufferInfo.Width / 2, _frameBufferInfo.Height / 2);
     }

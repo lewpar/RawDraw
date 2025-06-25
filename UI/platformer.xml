@@ -4,7 +4,7 @@
        xsi:schemaLocation="http://rawdraw.com/ui ui.xsd">
 
     <Grid>
-        <Button text="Test Button" font-size="16" x="10" y="100" />
+        <Button text="Test Button" font-size="16" x="10" y="100" padding="10" />
     </Grid>
     
 </Frame>

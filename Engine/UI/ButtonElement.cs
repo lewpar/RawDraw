@@ -1,6 +1,7 @@
 using System.Xml.Serialization;
 
 using RawDraw.Engine.Drawing;
+using RawDraw.Engine.Input;
 using RawDraw.Engine.Primitive;
 
 namespace RawDraw.Engine.UI;
@@ -58,15 +59,68 @@ public class ButtonElement : UIElement
     [XmlAttribute("padding")]
     public int Padding { get; set; }
 
+    private Rectangle? _bounds;
+    
+    private bool _currentTouchState;
+    private bool _lastTouchState;
+
+    [XmlIgnore]
+    public Rectangle Bounds
+    {
+        get
+        {
+            if (_bounds is null)
+            {
+                _bounds = new Rectangle(X, Y, 
+                    (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+                    FontSize + (Padding * 2));
+            }
+
+            return _bounds.Value;
+        }
+    }
+
+    public void OnTouch()
+    {
+        Console.WriteLine("Touching");
+    }
+
+    public override void Update(float deltaTimeMs)
+    {
+        _currentTouchState = InputManager.IsTouching(Bounds);
+        
+        if (!_lastTouchState && _currentTouchState)
+        {
+            OnTouch();
+        }
+        
+        _lastTouchState = _currentTouchState;
+        
+        base.Update(deltaTimeMs);
+    }
+
     public override void Draw(FrameBuffer buffer)
     {
-        buffer.FillRect(X, Y, 
-            (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-            FontSize + (Padding * 2), Background);
-        
-        buffer.DrawRect(X, Y, 
-            (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
-            FontSize + (Padding * 2), BorderSize, BorderColor);
+        if (_currentTouchState)
+        {
+            buffer.FillRect(X, Y, 
+                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+                FontSize + (Padding * 2), Color.White);
+            
+            buffer.DrawRect(X, Y, 
+                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+                FontSize + (Padding * 2), BorderSize, Color.White);
+        }
+        else
+        {
+            buffer.FillRect(X, Y, 
+                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+                FontSize + (Padding * 2), Color.Gray);
+            
+            buffer.DrawRect(X, Y, 
+                (Width > 0 ? Width : MeasureText(FontSize, Text ?? "")) + (Padding * 2), 
+                FontSize + (Padding * 2), BorderSize, Color.Gray);   
+        }
 
         if (!string.IsNullOrWhiteSpace(Text))
         {
