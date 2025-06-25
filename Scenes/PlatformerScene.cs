@@ -2,7 +2,6 @@ using RawDraw.Engine.Drawing;
 using RawDraw.Engine.Input;
 using RawDraw.Engine.Scene;
 using RawDraw.Engine.Primitive;
-using RawDraw.Engine.UI;
 
 namespace RawDraw.Scenes;
 
@@ -33,28 +32,28 @@ public class Platform
 public class PlatformerScene : Scene
 {
     // Player properties
-    private float playerX = 100;
-    private float playerY = 100;
-    private float playerWidth = 20;
-    private float playerHeight = 30;
-    private float playerVelocityX = 0;
-    private float playerVelocityY = 0;
-    private bool isJumping = false;
-    private int score = 0;
+    private float _playerX = 100;
+    private float _playerY = 100;
+    private float _playerWidth = 20;
+    private float _playerHeight = 30;
+    private float _playerVelocityX;
+    private float _playerVelocityY;
+    private bool _isJumping;
+    private int _score = 0;
 
     // Physics constants
-    private const float MOVE_SPEED = 200f;
-    private const float JUMP_FORCE = -400f;
-    private const float GRAVITY = 800f;
-    private const float FRICTION = 0.8f;
+    private const float MoveSpeed = 200f;
+    private const float JumpForce = -400f;
+    private const float Gravity = 800f;
+    private const float Friction = 0.8f;
 
     // Platforms
-    private List<Platform> platforms;
+    private List<Platform> _platforms;
 
     public PlatformerScene()
     {
         // Initialize platforms
-        platforms = new List<Platform>
+        _platforms = new List<Platform>
         {
             new Platform(50, 400, 200, 20),    // Starting platform
             new Platform(300, 350, 150, 20),   // Platform to jump to
@@ -76,102 +75,102 @@ public class PlatformerScene : Scene
         // Handle horizontal movement
         if (Input.IsKeyDown(KeyCodes.KEY_A))
         {
-            playerVelocityX = -MOVE_SPEED;
+            _playerVelocityX = -MoveSpeed;
         }
         else if (Input.IsKeyDown(KeyCodes.KEY_D))
         {
-            playerVelocityX = MOVE_SPEED;
+            _playerVelocityX = MoveSpeed;
         }
         else
         {
-            playerVelocityX *= FRICTION;
+            _playerVelocityX *= Friction;
         }
 
         // Apply gravity
-        playerVelocityY += GRAVITY * deltaTime;
+        _playerVelocityY += Gravity * deltaTime;
 
         // Handle jumping
-        if (Input.IsKeyDown(KeyCodes.KEY_SPACE) && !isJumping)
+        if (Input.IsKeyDown(KeyCodes.KEY_SPACE) && !_isJumping)
         {
-            playerVelocityY = JUMP_FORCE;
-            isJumping = true;
+            _playerVelocityY = JumpForce;
+            _isJumping = true;
         }
 
         // Update position
-        float newPlayerX = playerX + playerVelocityX * deltaTime;
-        float newPlayerY = playerY + playerVelocityY * deltaTime;
+        float newPlayerX = _playerX + _playerVelocityX * deltaTime;
+        float newPlayerY = _playerY + _playerVelocityY * deltaTime;
 
         // Check platform collisions
         bool onGround = false;
-        foreach (var platform in platforms)
+        foreach (var platform in _platforms)
         {
-            if (platform.Collides(newPlayerX, newPlayerY, playerWidth, playerHeight))
+            if (platform.Collides(newPlayerX, newPlayerY, _playerWidth, _playerHeight))
             {
                 // Collision resolution
-                if (playerVelocityY > 0 && playerY + playerHeight <= platform.Y + 5)
+                if (_playerVelocityY > 0 && _playerY + _playerHeight <= platform.Y + 5)
                 {
                     // Landing on top of platform
-                    newPlayerY = platform.Y - playerHeight;
-                    playerVelocityY = 0;
-                    isJumping = false;
+                    newPlayerY = platform.Y - _playerHeight;
+                    _playerVelocityY = 0;
+                    _isJumping = false;
                     onGround = true;
                 }
-                else if (playerVelocityY < 0 && playerY >= platform.Y + platform.Height - 5)
+                else if (_playerVelocityY < 0 && _playerY >= platform.Y + platform.Height - 5)
                 {
                     // Hitting platform from below
                     newPlayerY = platform.Y + platform.Height;
-                    playerVelocityY = 0;
+                    _playerVelocityY = 0;
                 }
                 
-                if (playerVelocityX > 0 && playerX + playerWidth <= platform.X + 5)
+                if (_playerVelocityX > 0 && _playerX + _playerWidth <= platform.X + 5)
                 {
                     // Hitting platform from left
-                    newPlayerX = platform.X - playerWidth;
-                    playerVelocityX = 0;
+                    newPlayerX = platform.X - _playerWidth;
+                    _playerVelocityX = 0;
                 }
-                else if (playerVelocityX < 0 && playerX >= platform.X + platform.Width - 5)
+                else if (_playerVelocityX < 0 && _playerX >= platform.X + platform.Width - 5)
                 {
                     // Hitting platform from right
                     newPlayerX = platform.X + platform.Width;
-                    playerVelocityX = 0;
+                    _playerVelocityX = 0;
                 }
             }
         }
 
         if (!onGround)
         {
-            isJumping = true;
+            _isJumping = true;
         }
 
         // Update position
-        playerX = newPlayerX;
-        playerY = newPlayerY;
+        _playerX = newPlayerX;
+        _playerY = newPlayerY;
 
         // Keep player in bounds
-        if (playerX < 0) playerX = 0;
-        if (playerX + playerWidth > 800) playerX = 800 - playerWidth;
-        if (playerY < 0) playerY = 0;
-        if (playerY + playerHeight > 480) 
+        if (_playerX < 0) _playerX = 0;
+        if (_playerX + _playerWidth > 800) _playerX = 800 - _playerWidth;
+        if (_playerY < 0) _playerY = 0;
+        if (_playerY + _playerHeight > 480) 
         {
-            playerY = 480 - playerHeight;
-            playerVelocityY = 0;
-            isJumping = false;
+            _playerY = 480 - _playerHeight;
+            _playerVelocityY = 0;
+            _isJumping = false;
         }
     }
 
     public override void Draw(FrameBuffer buffer)
     {
         // Draw platforms
-        foreach (var platform in platforms)
+        foreach (var platform in _platforms)
         {
             buffer.FillRect(platform.X, platform.Y, platform.Width, platform.Height, Color.Green);
         }
 
         // Draw player
-        buffer.FillRect((int)playerX, (int)playerY, (int)playerWidth, (int)playerHeight, Color.Blue);
+        buffer.FillRect((int)_playerX, (int)_playerY, (int)_playerWidth, (int)_playerHeight, Color.Blue);
 
         // Draw score and instructions
-        buffer.DrawText(10, 10, $"Score: {score}", Color.White);
+        buffer.DrawText(10, 10, $"Score: {_score}", Color.White);
         buffer.DrawText(10, 30, "Use A/D to move, SPACE to jump", Color.White);
     }
 } 
