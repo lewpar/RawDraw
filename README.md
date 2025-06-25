@@ -3,21 +3,33 @@ This code shows how you can access the raw frame buffer in a Linux environment t
 
 ## Usage
 ```cs
-using var buffer = new FrameBuffer(new FrameBufferOptions
+using var engine = new RenderEngine(new RenderEngineOptions()
 {
-    Path = "/dev/fb0"
+    FrameBufferDevice = "/dev/fb0",
+    KeyboardDevice = InputDeviceEnumerator.AutoDetectKeyboardDevice(),
+    ShowMetrics = true,
+    HideConsoleCaret = true,
+    MouseDevice = InputDeviceEnumerator.AutoDetectMouseDevice(),
+    TouchDevice = InputDeviceEnumerator.AutoDetectTouchDevice(),
+    MaxTouchX = 1452,
+    MaxTouchY = 912
 });
+
+engine.Initialize();
+engine.SceneManager.Push(new PlatformerScene()
+{
+    UI = "UI/platformer.xml"
+});
+
+Console.CancelKeyPress += (s, e) =>
+{
+    e.Cancel = true;
+    Environment.Exit(0);
+};
 
 while (true)
 {
-    buffer.Clear(Color.Black);
-    
-    buffer.FillRect(new Rectangle(0, 0, 100, 100), Color.Red);
-    buffer.DrawText(1, 1, "Hello World", Color.White);
-
-    buffer.SwapBuffers();
-
-    await Task.Delay(1);
+    engine.Update();
 }
 ```
 
