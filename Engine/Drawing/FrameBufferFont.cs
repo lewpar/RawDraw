@@ -1,6 +1,6 @@
-namespace RawDraw;
+namespace RawDraw.Engine.Drawing;
 
-public static class FrameBufferFont
+public class FrameBufferFont
 {
     public static readonly Dictionary<char, byte[]> Basic8x8 = new Dictionary<char, byte[]>
     {

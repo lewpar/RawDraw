@@ -1,4 +1,4 @@
-namespace RawDraw;
+namespace RawDraw.Engine.Drawing;
 
 public class FrameBufferInfo
 {

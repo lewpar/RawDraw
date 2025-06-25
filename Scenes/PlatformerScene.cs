@@ -1,262 +1,176 @@
-using System.Collections.Generic;
-using System.Drawing;
-using Vec2 = System.Numerics.Vector2;
+using RawDraw.Engine.Drawing;
+using RawDraw.Engine.Input;
+using RawDraw.Engine.Scene;
+using RawDraw.Engine.Primitive;
 
 namespace RawDraw.Scenes;
 
-public class PlatformerScene : IScene
+public class Platform
 {
-    // Screen dimensions
-    private readonly int screenWidth;
-    private readonly int screenHeight;
+    public int X { get; set; }
+    public int Y { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
 
-    // Player properties
-    private Vec2 playerPosition;
-    private Vec2 playerVelocity;
-    private readonly float playerWidth;
-    private readonly float playerHeight;
-    private bool isJumping;
-    private bool isGrounded;
-    private float gravity;
-    private float jumpForce;
-    private float moveSpeed;
-    private const float BASE_GRAVITY = 1f;
-    private const float BASE_JUMP_FORCE = -120f;
-    private const float BASE_MOVE_SPEED = 75f;
-
-    // Input states
-    private bool isMovingLeft;
-    private bool isMovingRight;
-    private bool isJumpPressed;
-
-    // Camera properties
-    private Vec2 cameraPosition;
-    private const float CAMERA_SMOOTHING = 0.1f;
-
-    // Level properties
-    private readonly List<Rectangle> platforms;
-    private readonly float platformHeight;
-    private readonly float minPlatformWidth;
-    private readonly float maxPlatformWidth;
-    private readonly float platformSpacing;
-    private readonly int numPlatforms;
-
-    // Colors
-    private static readonly Color BACKGROUND_COLOR = Color.FromArgb(255, 135, 206, 235); // Sky blue
-    private static readonly Color PLAYER_COLOR = Color.FromArgb(255, 255, 0, 0); // Red
-    private static readonly Color PLATFORM_COLOR = Color.FromArgb(255, 34, 139, 34); // Forest green
-    private static readonly Color TEXT_COLOR = Color.FromArgb(255, 255, 255, 255); // White
-
-    // Key codes
-    private const int KEY_A = 30;
-    private const int KEY_D = 32;
-    private const int KEY_SPACE = 57;
-
-    public PlatformerScene(int screenWidth, int screenHeight)
+    public Platform(int x, int y, int width, int height)
     {
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
+        X = x;
+        Y = y;
+        Width = width;
+        Height = height;
+    }
 
-        // Scale physics values based on screen size
-        float screenScale = Math.Min(screenWidth, screenHeight) / 1080f; // Scale relative to 1080p
-        gravity = BASE_GRAVITY * screenScale * 2f; // Double the base gravity
-        jumpForce = BASE_JUMP_FORCE * screenScale * 2f; // Double the base jump force
-        moveSpeed = BASE_MOVE_SPEED * screenScale * 3f; // Triple the base move speed
+    public bool Collides(float px, float py, float width, float height)
+    {
+        return px < X + Width &&
+               px + width > X &&
+               py < Y + Height &&
+               py + height > Y;
+    }
+}
 
-        // Initialize player
-        playerWidth = screenWidth * 0.02f;
-        playerHeight = screenHeight * 0.04f;
-        playerVelocity = Vec2.Zero;
-        isJumping = false;
-        isGrounded = false;
+public class PlatformerScene : Scene
+{
+    // Player properties
+    private float _playerX = 100;
+    private float _playerY = 100;
+    private float _playerWidth = 20;
+    private float _playerHeight = 30;
+    private float _playerVelocityX;
+    private float _playerVelocityY;
+    private bool _isJumping;
+    private int _score = 0;
 
-        // Initialize input states
-        isMovingLeft = false;
-        isMovingRight = false;
-        isJumpPressed = false;
+    // Physics constants
+    private const float MoveSpeed = 200f;
+    private const float JumpForce = -400f;
+    private const float Gravity = 800f;
+    private const float Friction = 0.8f;
 
-        // Initialize camera
-        cameraPosition = Vec2.Zero;
+    // Platforms
+    private List<Platform> _platforms;
 
-        // Initialize level
-        platformHeight = screenHeight * 0.02f;
-        minPlatformWidth = screenWidth * 0.1f;
-        maxPlatformWidth = screenWidth * 0.2f;
-        platformSpacing = screenHeight * 0.15f;
-        numPlatforms = 20;
-
-        platforms = new List<Rectangle>();
-        GenerateLevel();
-
-        // Position player on the first platform
-        if (platforms.Count > 0)
+    public PlatformerScene()
+    {
+        // Initialize platforms
+        _platforms = new List<Platform>
         {
-            var firstPlatform = platforms[0];
-            playerPosition = new Vec2(
-                firstPlatform.X + firstPlatform.Width / 2, // Center on platform
-                firstPlatform.Y - playerHeight - 5 // 5 pixels above platform
-            );
+            new Platform(50, 400, 200, 20),    // Starting platform
+            new Platform(300, 350, 150, 20),   // Platform to jump to
+            new Platform(500, 300, 150, 20),   // Higher platform
+            new Platform(200, 250, 150, 20),   // Even higher platform
+            new Platform(0, 450, 800, 20),     // Ground
+        };
+    }
+
+    public override void Update(float deltaTimeMs)
+    {
+        if (Input is null)
+        {
+            throw new InvalidOperationException("Input manager is not initialized in PlatformerScene");
+        }
+
+        float deltaTime = deltaTimeMs / 1000f; // Convert to seconds
+
+        // Handle horizontal movement
+        if (Input.IsKeyDown(KeyCodes.KEY_A))
+        {
+            _playerVelocityX = -MoveSpeed;
+        }
+        else if (Input.IsKeyDown(KeyCodes.KEY_D))
+        {
+            _playerVelocityX = MoveSpeed;
         }
         else
         {
-            // Fallback position if no platforms were generated
-            playerPosition = new Vec2(screenWidth * 0.2f, screenHeight * 0.5f);
+            _playerVelocityX *= Friction;
         }
-    }
 
-    public void Input(int keyCode, bool state)
-    {
-        switch (keyCode)
+        // Apply gravity
+        _playerVelocityY += Gravity * deltaTime;
+
+        // Handle jumping
+        if (Input.IsKeyDown(KeyCodes.KEY_SPACE) && !_isJumping)
         {
-            case KEY_A:
-                isMovingLeft = state;
-                break;
-            case KEY_D:
-                isMovingRight = state;
-                break;
-            case KEY_SPACE:
-                isJumpPressed = state;
-                if (state && isGrounded && !isJumping)
-                {
-                    playerVelocity.Y = jumpForce;
-                    isJumping = true;
-                    isGrounded = false;
-                }
-                break;
+            _playerVelocityY = JumpForce;
+            _isJumping = true;
         }
-    }
 
-    public void Render(FrameBuffer buffer, long deltaTime)
-    {
-        // Update game state
-        UpdateGame(deltaTime);
+        // Update position
+        float newPlayerX = _playerX + _playerVelocityX * deltaTime;
+        float newPlayerY = _playerY + _playerVelocityY * deltaTime;
 
-        // Draw platforms
-        foreach (var platform in platforms)
+        // Check platform collisions
+        bool onGround = false;
+        foreach (var platform in _platforms)
         {
-            // Convert platform position to screen space
-            int screenX = (int)(platform.X - cameraPosition.X);
-            int screenY = (int)(platform.Y - cameraPosition.Y);
-
-            // Only draw if on screen
-            if (screenX + platform.Width > 0 && screenX < screenWidth &&
-                screenY + platform.Height > 0 && screenY < screenHeight)
+            if (platform.Collides(newPlayerX, newPlayerY, _playerWidth, _playerHeight))
             {
-                buffer.FillRect(screenX, screenY, platform.Width, platform.Height, PLATFORM_COLOR);
+                // Collision resolution
+                if (_playerVelocityY > 0 && _playerY + _playerHeight <= platform.Y + 5)
+                {
+                    // Landing on top of platform
+                    newPlayerY = platform.Y - _playerHeight;
+                    _playerVelocityY = 0;
+                    _isJumping = false;
+                    onGround = true;
+                }
+                else if (_playerVelocityY < 0 && _playerY >= platform.Y + platform.Height - 5)
+                {
+                    // Hitting platform from below
+                    newPlayerY = platform.Y + platform.Height;
+                    _playerVelocityY = 0;
+                }
+                
+                if (_playerVelocityX > 0 && _playerX + _playerWidth <= platform.X + 5)
+                {
+                    // Hitting platform from left
+                    newPlayerX = platform.X - _playerWidth;
+                    _playerVelocityX = 0;
+                }
+                else if (_playerVelocityX < 0 && _playerX >= platform.X + platform.Width - 5)
+                {
+                    // Hitting platform from right
+                    newPlayerX = platform.X + platform.Width;
+                    _playerVelocityX = 0;
+                }
             }
+        }
+
+        if (!onGround)
+        {
+            _isJumping = true;
+        }
+
+        // Update position
+        _playerX = newPlayerX;
+        _playerY = newPlayerY;
+
+        // Keep player in bounds
+        if (_playerX < 0) _playerX = 0;
+        if (_playerX + _playerWidth > 800) _playerX = 800 - _playerWidth;
+        if (_playerY < 0) _playerY = 0;
+        if (_playerY + _playerHeight > 480) 
+        {
+            _playerY = 480 - _playerHeight;
+            _playerVelocityY = 0;
+            _isJumping = false;
+        }
+    }
+
+    public override void Draw(FrameBuffer buffer)
+    {
+        // Draw platforms
+        foreach (var platform in _platforms)
+        {
+            buffer.FillRect(platform.X, platform.Y, platform.Width, platform.Height, Color.Green);
         }
 
         // Draw player
-        int playerScreenX = (int)(playerPosition.X - cameraPosition.X);
-        int playerScreenY = (int)(playerPosition.Y - cameraPosition.Y);
-        buffer.FillRect(playerScreenX, playerScreenY, (int)playerWidth, (int)playerHeight, PLAYER_COLOR);
+        buffer.FillRect((int)_playerX, (int)_playerY, (int)_playerWidth, (int)_playerHeight, Color.Blue);
 
-        // Draw debug info
-        buffer.DrawText(10, 10, $"Position: ({playerPosition.X:F1}, {playerPosition.Y:F1})", TEXT_COLOR);
-        buffer.DrawText(10, 30, $"Velocity: ({playerVelocity.X:F1}, {playerVelocity.Y:F1})", TEXT_COLOR);
-        buffer.DrawText(10, 50, $"Grounded: {isGrounded}", TEXT_COLOR);
-    }
-
-    private void UpdateGame(long deltaTime)
-    {
-        float deltaTimeSeconds = deltaTime / 1000f;
-
-        // Handle movement input
-        if (isMovingLeft)
-            playerVelocity.X = -moveSpeed;
-        else if (isMovingRight)
-            playerVelocity.X = moveSpeed;
-        else
-            playerVelocity.X *= 0.9f; // Apply friction when no keys are pressed
-
-        // Apply gravity
-        playerVelocity.Y += gravity;
-
-        // Update position
-        playerPosition += playerVelocity * deltaTimeSeconds;
-
-        // Check platform collisions
-        isGrounded = false;
-        foreach (var platform in platforms)
-        {
-            if (CheckCollision(playerPosition, playerWidth, playerHeight, 
-                             new Vec2(platform.X, platform.Y), platform.Width, platform.Height))
-            {
-                // Collision from above (landing on platform)
-                if (playerVelocity.Y > 0 && playerPosition.Y + playerHeight - playerVelocity.Y * deltaTimeSeconds <= platform.Y)
-                {
-                    playerPosition.Y = platform.Y - playerHeight;
-                    playerVelocity.Y = 0;
-                    isGrounded = true;
-                    isJumping = false;
-                }
-                // Collision from below (hitting ceiling)
-                else if (playerVelocity.Y < 0 && playerPosition.Y - playerVelocity.Y * deltaTimeSeconds >= platform.Y + platform.Height)
-                {
-                    playerPosition.Y = platform.Y + platform.Height;
-                    playerVelocity.Y = 0;
-                }
-                // Collision from sides
-                else
-                {
-                    if (playerVelocity.X > 0)
-                        playerPosition.X = platform.X - playerWidth;
-                    else if (playerVelocity.X < 0)
-                        playerPosition.X = platform.X + platform.Width;
-                    playerVelocity.X = 0;
-                }
-            }
-        }
-
-        // Update camera to follow player
-        Vec2 targetCameraPos = new Vec2(
-            playerPosition.X - screenWidth * 0.3f, // Keep player 30% from left edge
-            playerPosition.Y - screenHeight * 0.5f // Keep player centered vertically
-        );
-
-        // Smooth camera movement
-        cameraPosition += (targetCameraPos - cameraPosition) * CAMERA_SMOOTHING;
-
-        // Prevent camera from going below ground level
-        cameraPosition.Y = Math.Max(0, cameraPosition.Y);
-    }
-
-    private void GenerateLevel()
-    {
-        float currentY = screenHeight * 0.7f;
-        float currentX = 0;
-
-        // Generate initial platforms
-        for (int i = 0; i < numPlatforms; i++)
-        {
-            float platformWidth = minPlatformWidth + (float)Random.Shared.NextDouble() * (maxPlatformWidth - minPlatformWidth);
-            
-            // Make first platform wider and more stable
-            if (i == 0)
-            {
-                platformWidth = maxPlatformWidth * 1.5f;
-                currentY = screenHeight * 0.7f; // Fixed height for first platform
-            }
-            
-            platforms.Add(new Rectangle((int)currentX, (int)currentY, (int)platformWidth, (int)platformHeight));
-            
-            currentX += platformWidth + (screenWidth * 0.1f);
-            
-            // Only vary Y position after first platform
-            if (i > 0)
-            {
-                currentY += (float)(Random.Shared.NextDouble() - 0.5) * platformSpacing;
-                // Keep platforms within reasonable bounds
-                currentY = Math.Clamp(currentY, screenHeight * 0.3f, screenHeight * 0.8f);
-            }
-        }
-    }
-
-    private bool CheckCollision(Vec2 pos1, float width1, float height1, Vec2 pos2, float width2, float height2)
-    {
-        return pos1.X < pos2.X + width2 &&
-               pos1.X + width1 > pos2.X &&
-               pos1.Y < pos2.Y + height2 &&
-               pos1.Y + height1 > pos2.Y;
+        // Draw score and instructions
+        buffer.DrawText(10, 10, $"Score: {_score}", Color.White);
+        buffer.DrawText(10, 30, "Use A/D to move, SPACE to jump", Color.White);
     }
 } 
