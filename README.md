@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This project has evolved into [MyKUIPi](https://github.com/lewpar/MyKUIPi), any further development is done there instead.
+
 # Linux Raw Buffer Drawing
 This code shows how you can access the raw frame buffer in a Linux environment to draw onto the screen.
 
